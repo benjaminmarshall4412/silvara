@@ -5,7 +5,7 @@ import Image from "next/image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import type { BundleId, Product } from "@/lib/products";
-import { PRODUCTS, formatUsd, formatUsdFine } from "@/lib/products";
+import { PRODUCTS, formatUsdFine } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 type OneTimeBundleProduct = Product & { id: Exclude<BundleId, "rotation"> };
@@ -66,7 +66,7 @@ function BundlePriceRow({
               strike,
             )}
           >
-            {formatUsd(priceCents)}
+            {formatUsdFine(priceCents)}
           </span>
           <span
             className={cn(
@@ -74,7 +74,7 @@ function BundlePriceRow({
               main,
             )}
           >
-            {formatUsd(after)}
+            {formatUsdFine(after)}
           </span>
           <span
             className={cn(
@@ -92,7 +92,7 @@ function BundlePriceRow({
             main,
           )}
         >
-          {formatUsd(priceCents)}
+          {formatUsdFine(priceCents)}
         </p>
       )}
     </div>
@@ -379,10 +379,10 @@ export function Pricing() {
                   {showDiscount ? (
                     <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                       <span className="font-heading text-3xl font-extrabold tabular-nums line-through decoration-2 text-background/45 md:text-4xl">
-                        {formatUsd(rotation.priceCents)}
+                        {formatUsdFine(rotation.priceCents)}
                       </span>
                       <span className="font-heading text-3xl font-extrabold tabular-nums text-background md:text-4xl">
-                        {formatUsd(applyPromoToCents(rotation.priceCents, pct))}
+                        {formatUsdFine(applyPromoToCents(rotation.priceCents, pct))}
                       </span>
                       <span className="font-mono-label rounded-sm border border-background/45 px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-background">
                         −{pct}%
@@ -390,7 +390,7 @@ export function Pricing() {
                     </div>
                   ) : (
                     <p className="font-heading mt-0.5 text-3xl font-extrabold md:text-4xl text-background">
-                      {formatUsd(rotation.priceCents)}
+                      {formatUsdFine(rotation.priceCents)}
                     </p>
                   )}
                   <p className="mt-1 text-sm text-background/75">
