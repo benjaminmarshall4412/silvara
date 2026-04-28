@@ -20,6 +20,10 @@ export default function CheckoutPage() {
   const linesKey = useMemo(() => JSON.stringify(lines), [lines]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  /** From create-intent — whether Stripe attached the email coupon (cookie + server env). */
+  const [appliedPromoOnSession, setAppliedPromoOnSession] = useState<
+    boolean | null
+  >(null);
 
   /** Estimated savings whenever the promo cookie qualifies — Stripe applies same rules when coupon id is configured. */
   const eligiblePromo =
@@ -42,9 +46,11 @@ export default function CheckoutPage() {
   const loadCheckoutSession = useCallback(
     async (signal?: AbortSignal) => {
       setSessionError(null);
+      setAppliedPromoOnSession(null);
       try {
         const response = await fetch("/api/stripe/create-intent", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ lines }),
           signal,
@@ -59,6 +65,11 @@ export default function CheckoutPage() {
           throw new Error("Missing Stripe client secret");
         }
 
+        setAppliedPromoOnSession(
+          typeof payload.appliedPromoDiscount === "boolean"
+            ? payload.appliedPromoDiscount
+            : null,
+        );
         setClientSecret(payload.clientSecret);
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return;
@@ -229,6 +240,24 @@ export default function CheckoutPage() {
             Powered by Stripe. Taxes, payment, and billing details are handled on secure
             Stripe-hosted infrastructure.
           </p>
+          {eligiblePromo &&
+          discountCents > 0 &&
+          appliedPromoOnSession === false ? (
+            <div
+              role="alert"
+              className="border-foreground text-foreground bg-muted border-4 px-4 py-3 font-mono-label text-[0.65rem] leading-relaxed uppercase tracking-wide"
+            >
+              Stripe is charging list price ({formatUsd(subtotalCents)}) because the automatic coupon
+              was not attached. Set{" "}
+              <span className="text-foreground">STRIPE_EMAIL_PROMO_COUPON_ID</span> in{" "}
+              <span className="text-foreground">.env</span> to your Stripe coupon id (starts with{" "}
+              <span className="normal-case">coupon_</span>
+              ), matching the same percent as{" "}
+              <span className="text-foreground">NEXT_PUBLIC_SILVARA_PROMO_PCT</span>. Restart the
+              server and open checkout again after completing the email promo in this browser so the
+              promo cookie is sent.
+            </div>
+          ) : null}
           <div className="border-foreground bg-[#f8f7f5] border-4 p-2 md:p-4">
             <EmbeddedCheckoutProvider
               stripe={stripePromise}

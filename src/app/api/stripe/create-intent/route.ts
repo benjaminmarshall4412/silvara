@@ -55,9 +55,15 @@ export async function POST(request: Request) {
       throw new Error("Stripe did not return a client secret")
     }
 
+    /** True when Checkout Session includes `discounts` (cookie + STRIPE_EMAIL_PROMO_COUPON_ID). */
+    const appliedPromoDiscount = Boolean(
+      autoDiscount && autoDiscount.length > 0,
+    )
+
     return NextResponse.json({
       clientSecret: session.client_secret,
       sessionId: session.id,
+      appliedPromoDiscount,
     })
   } catch (error) {
     console.error("[stripe] create-intent failed", error)
