@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "stripe:sync-catalog": "node scripts/sync-stripe-catalog.mjs"
+    "stripe:sync-catalog": "node --env-file=.env scripts/sync-stripe-catalog.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
