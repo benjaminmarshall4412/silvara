@@ -17,7 +17,6 @@ const catalog = [
     description: "Single pair trial pack",
     amount: 1800,
     lookupKey: "silvara_single_usd_onetime_v1",
-    recurring: null,
     envKey: "STRIPE_PRICE_SINGLE",
   },
   {
@@ -26,7 +25,6 @@ const catalog = [
     description: "Main workweek rotation bundle",
     amount: 4200,
     lookupKey: "silvara_triple_usd_onetime_v1",
-    recurring: null,
     envKey: "STRIPE_PRICE_TRIPLE",
   },
   {
@@ -35,7 +33,6 @@ const catalog = [
     description: "Best per-pair value bundle",
     amount: 7200,
     lookupKey: "silvara_six_usd_onetime_v1",
-    recurring: null,
     envKey: "STRIPE_PRICE_SIX",
   },
   {
@@ -77,17 +74,21 @@ async function getOrCreatePrice(item, productId) {
 
   if (existing.data.length > 0) return existing.data[0]
 
-  return stripe.prices.create({
+  const params = {
     product: productId,
     unit_amount: item.amount,
     currency: "usd",
     lookup_key: item.lookupKey,
-    recurring: item.recurring,
     metadata: {
       bundle_id: item.bundleId,
       managed_by: "silvara-script",
     },
-  })
+  }
+  // One-time prices must omit `recurring`; Stripe rejects `recurring: null`.
+  if (item.recurring) {
+    params.recurring = item.recurring
+  }
+  return stripe.prices.create(params)
 }
 
 async function run() {
