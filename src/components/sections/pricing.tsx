@@ -1,11 +1,18 @@
+"use client";
+
 import Image from "next/image";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
+import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import type { BundleId, Product } from "@/lib/products";
-import { PRODUCTS, formatUsd } from "@/lib/products";
+import { PRODUCTS, formatUsd, formatUsdFine } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 type OneTimeBundleProduct = Product & { id: Exclude<BundleId, "rotation"> };
+
+function applyPromoToCents(cents: number, pct: number) {
+  return Math.round((cents * (100 - pct)) / 100);
+}
 
 const bundles = PRODUCTS.filter(
   (p): p is OneTimeBundleProduct => !p.isSubscription,
@@ -30,7 +37,109 @@ const HERO_IMAGE_VERSION = 3;
 
 const heroSrc = `/169_dimension__GPT_Image_2_23872.jpg?v=${HERO_IMAGE_VERSION}`;
 
+function BundlePriceRow({
+  priceCents,
+  featured,
+  pct,
+  showDiscount,
+}: {
+  priceCents: number;
+  featured: boolean;
+  pct: number;
+  showDiscount: boolean;
+}) {
+  const after = applyPromoToCents(priceCents, pct);
+  const inv = featured;
+  const strike = inv ? "text-background/50" : "text-muted-foreground";
+  const main = inv ? "text-background" : "text-foreground";
+  const chip = inv
+    ? "border-background/45 text-background"
+    : "border-foreground text-foreground";
+
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      {showDiscount ? (
+        <>
+          <span
+            className={cn(
+              "font-heading text-4xl font-extrabold tabular-nums line-through decoration-2 md:text-5xl",
+              strike,
+            )}
+          >
+            {formatUsd(priceCents)}
+          </span>
+          <span
+            className={cn(
+              "font-heading text-4xl font-extrabold tabular-nums md:text-5xl",
+              main,
+            )}
+          >
+            {formatUsd(after)}
+          </span>
+          <span
+            className={cn(
+              "font-mono-label rounded-sm border px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide",
+              chip,
+            )}
+          >
+            −{pct}%
+          </span>
+        </>
+      ) : (
+        <p
+          className={cn(
+            "font-heading text-4xl font-extrabold tabular-nums md:text-5xl",
+            main,
+          )}
+        >
+          {formatUsd(priceCents)}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function BundleUnitNote({
+  p,
+  showDiscount,
+  pct,
+  featured,
+}: {
+  p: OneTimeBundleProduct;
+  showDiscount: boolean;
+  pct: number;
+  featured: boolean;
+}) {
+  const base = cn(
+    "mt-2 text-sm leading-snug md:text-base",
+    featured ? "text-background/90" : "text-muted-foreground",
+  );
+  if (!showDiscount || p.id === "single") {
+    return <p className={base}>{p.unitNote}</p>;
+  }
+  const after = applyPromoToCents(p.priceCents, pct);
+  const pairs = p.id === "triple" ? 3 : 6;
+  const per = Math.round(after / pairs);
+  if (p.id === "triple") {
+    return (
+      <p className={base}>
+        {formatUsdFine(per)} / pair bundled.
+      </p>
+    );
+  }
+  return (
+    <p className={base}>
+      {formatUsdFine(per)} / pair — best per-shift cost.
+    </p>
+  );
+}
+
 export function Pricing() {
+  const { state: promoState } = usePromoEligibility();
+  const showDiscount =
+    !!promoState && promoState.claimedOnThisDevice && promoState.pct > 0;
+  const pct = promoState?.pct ?? 15;
+
   return (
     <section
       id="loadouts"
@@ -172,19 +281,18 @@ export function Pricing() {
                   p.featured && "pb-6 md:pb-8",
                 )}
               >
-                <p className="font-heading text-4xl font-extrabold tabular-nums md:text-5xl">
-                  {formatUsd(p.priceCents)}
-                </p>
-                <p
-                  className={cn(
-                    "mt-2 text-sm leading-snug md:text-base",
-                    p.featured
-                      ? "text-background/90"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {p.unitNote}
-                </p>
+                <BundlePriceRow
+                  priceCents={p.priceCents}
+                  featured={!!p.featured}
+                  pct={pct}
+                  showDiscount={showDiscount}
+                />
+                <BundleUnitNote
+                  p={p}
+                  showDiscount={showDiscount}
+                  pct={pct}
+                  featured={!!p.featured}
+                />
                 <p
                   className={cn(
                     "mt-4 flex-1 text-base leading-relaxed md:text-lg",
@@ -268,9 +376,23 @@ export function Pricing() {
                   <p className="font-mono-label text-xs font-semibold uppercase tracking-wide text-background/60">
                     Per shipment
                   </p>
-                  <p className="font-heading mt-0.5 text-3xl font-extrabold md:text-4xl">
-                    {formatUsd(rotation.priceCents)}
-                  </p>
+                  {showDiscount ? (
+                    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      <span className="font-heading text-3xl font-extrabold tabular-nums line-through decoration-2 text-background/45 md:text-4xl">
+                        {formatUsd(rotation.priceCents)}
+                      </span>
+                      <span className="font-heading text-3xl font-extrabold tabular-nums text-background md:text-4xl">
+                        {formatUsd(applyPromoToCents(rotation.priceCents, pct))}
+                      </span>
+                      <span className="font-mono-label rounded-sm border border-background/45 px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-background">
+                        −{pct}%
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="font-heading mt-0.5 text-3xl font-extrabold md:text-4xl text-background">
+                      {formatUsd(rotation.priceCents)}
+                    </p>
+                  )}
                   <p className="mt-1 text-sm text-background/75">
                     {rotation.unitNote}
                   </p>

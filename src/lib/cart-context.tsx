@@ -4,18 +4,16 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
 
+import type { CartLine } from "@/lib/cart-types";
 import type { BundleId } from "@/lib/products";
 import { getProduct } from "@/lib/products";
-
-export type CartLine = {
-  id: BundleId;
-  quantity: number;
-};
+import { clearPersistedCart, persistCart, readPersistedCart } from "@/lib/cart-storage";
 
 type CartContextValue = {
   lines: CartLine[];
@@ -34,6 +32,23 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [openCart, setOpenCart] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
+
+  useEffect(() => {
+    const stored = readPersistedCart();
+    queueMicrotask(() => {
+      if (stored && stored.length > 0) {
+        setLines(stored);
+      }
+      setStorageReady(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    if (lines.length === 0) clearPersistedCart();
+    else persistCart(lines);
+  }, [lines, storageReady]);
 
   const add = useCallback((id: BundleId, qty = 1) => {
     setLines((prev) => {
@@ -60,7 +75,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setLines((prev) => prev.filter((l) => l.id !== id));
   }, []);
 
-  const clear = useCallback(() => setLines([]), []);
+  const clear = useCallback(() => {
+    setLines([]);
+    clearPersistedCart();
+  }, []);
 
   const { itemCount, subtotalCents } = useMemo(() => {
     let count = 0;
@@ -108,3 +126,5 @@ export function useCart() {
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 }
+
+export type { CartLine } from "@/lib/cart-types";

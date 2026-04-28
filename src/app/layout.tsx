@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk, Syne } from "next/font/google";
 
 import { CartDrawer } from "@/components/cart-drawer";
-import { PaletteLab } from "@/components/palette-lab";
+import { EmailPromoModal } from "@/components/email-promo-modal";
 import { SiteHeader } from "@/components/site-header";
 import { CartProvider } from "@/lib/cart-context";
+import { PromoEligibilityProvider } from "@/lib/promo-eligibility-context";
 
 import "./globals.css";
 
@@ -55,10 +56,12 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <CartProvider>
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <CartDrawer />
-          {process.env.NEXT_PUBLIC_PALETTE_LAB !== "0" ? <PaletteLab /> : null}
+          <PromoEligibilityProvider>
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <CartDrawer />
+            <EmailPromoModal />
+          </PromoEligibilityProvider>
         </CartProvider>
       </body>
     </html>

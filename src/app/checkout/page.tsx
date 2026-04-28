@@ -11,13 +11,21 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { envPublic } from "@/lib/env.public";
 import { useCart } from "@/lib/cart-context";
+import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { formatUsd, getProduct } from "@/lib/products";
 
 export default function CheckoutPage() {
   const { lines, subtotalCents } = useCart();
+  const { state: promo } = usePromoEligibility();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const discountCents =
+    promo?.discountWillApplyAtCheckout && promo.pct > 0
+      ? Math.round(subtotalCents * (promo.pct / 100))
+      : 0;
+  const estimatedTotalAfterPromo = Math.max(0, subtotalCents - discountCents);
   const stripePromise = useMemo(
     () =>
       envPublic.stripePublishableKey
@@ -109,15 +117,47 @@ export default function CheckoutPage() {
             </div>
           );
         })}
+        {discountCents > 0 ? (
+          <div className="border-border flex justify-between border-t-2 border-dashed px-4 py-3">
+            <span className="font-mono-label text-xs uppercase tracking-widest">Subtotal</span>
+            <span className="font-mono-label text-sm font-medium">{formatUsd(subtotalCents)}</span>
+          </div>
+        ) : null}
+        {discountCents > 0 ? (
+          <div className="flex justify-between px-4 py-3">
+            <span className="font-mono-label text-xs uppercase tracking-widest text-muted-foreground">
+              First-order savings · −{promo?.pct ?? 0}%
+            </span>
+            <span className="font-mono-label text-sm font-medium text-foreground">
+              −{formatUsd(discountCents)}
+            </span>
+          </div>
+        ) : null}
         <div className="flex justify-between bg-muted px-4 py-4">
           <span className="font-mono-label text-xs uppercase tracking-widest">
-            Total due
+            {discountCents > 0 ? "Estimated total" : "Total due"}
           </span>
           <span className="font-heading text-xl font-extrabold">
-            {formatUsd(subtotalCents)}
+            {formatUsd(discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents)}
           </span>
         </div>
       </div>
+      {promo &&
+      promo.pct > 0 &&
+      !promo.discountWillApplyAtCheckout &&
+      discountCents === 0 &&
+      (!promo.claimedOnThisDevice || !promo.stripeCouponConfigured) ? (
+        <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
+          {!promo.claimedOnThisDevice ? (
+            <>Add your email using the {promo.pct}% offer on the site first, then your savings will show here.</>
+          ) : (
+            <>
+              You&apos;re enrolled for {promo.pct}% off. If this total doesn&apos;t include it yet,
+              check back shortly — we may still be finishing the link to payment.
+            </>
+          )}
+        </p>
+      ) : null}
 
       {!envPublic.stripePublishableKey ? (
         <div className="mt-10 border-4 border-foreground bg-muted px-4 py-4">
@@ -154,7 +194,7 @@ export default function CheckoutPage() {
           ) : null}
         </div>
       ) : stripePromise ? (
-        <div className="mt-8 border-4 border-foreground bg-background p-2 md:p-4">
+        <div className="mt-8 border-4 border-foreground bg-[#f8f7f5] p-2 md:p-4">
           <EmbeddedCheckoutProvider
             stripe={stripePromise}
             options={{ clientSecret }}

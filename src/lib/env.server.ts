@@ -21,4 +21,6 @@ export const envServer = {
   stripePriceTriple: required("STRIPE_PRICE_TRIPLE"),
   stripePriceSix: required("STRIPE_PRICE_SIX"),
   stripePriceRotation: required("STRIPE_PRICE_ROTATION"),
+  /** Stripe Coupon id `coupon_*` — 15% (or configured %). Applied at Checkout when eligibility cookie valid. */
+  stripeEmailPromoCouponId: optional("STRIPE_EMAIL_PROMO_COUPON_ID"),
 }
