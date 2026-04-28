@@ -19,7 +19,10 @@ export default function CheckoutPage() {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const stripePromise = useMemo(
-    () => loadStripe(envPublic.stripePublishableKey),
+    () =>
+      envPublic.stripePublishableKey
+        ? loadStripe(envPublic.stripePublishableKey)
+        : null,
     [],
   );
 
@@ -116,12 +119,25 @@ export default function CheckoutPage() {
         </div>
       </div>
 
+      {!envPublic.stripePublishableKey ? (
+        <div className="mt-10 border-4 border-foreground bg-muted px-4 py-4">
+          <p className="font-mono-label text-xs font-bold uppercase tracking-wide text-foreground">
+            Stripe publishable key missing
+          </p>
+          <p className="mt-2 text-sm leading-snug text-foreground">
+            Add <code className="text-foreground">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> to your{" "}
+            <code className="text-foreground">.env</code> file, then restart{" "}
+            <code className="text-foreground">npm run dev</code>. Client env vars load when the Next dev server starts.
+          </p>
+        </div>
+      ) : null}
+
       {!clientSecret ? (
         <div className="mt-10 space-y-4">
           <Button
             type="button"
             size="lg"
-            disabled={isCreatingSession}
+            disabled={isCreatingSession || !envPublic.stripePublishableKey}
             onClick={startCheckout}
             className="h-14 w-full rounded-none border-2 border-transparent bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90"
           >
@@ -137,7 +153,7 @@ export default function CheckoutPage() {
             </p>
           ) : null}
         </div>
-      ) : (
+      ) : stripePromise ? (
         <div className="mt-8 border-4 border-foreground bg-background p-2 md:p-4">
           <EmbeddedCheckoutProvider
             stripe={stripePromise}
@@ -145,6 +161,14 @@ export default function CheckoutPage() {
           >
             <EmbeddedCheckout />
           </EmbeddedCheckoutProvider>
+        </div>
+      ) : (
+        <div className="mt-8 border-4 border-foreground bg-muted px-4 py-4">
+          <p className="text-sm">
+            Checkout session started but Stripe could not load — add{" "}
+            <code className="text-foreground">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code>
+            and restart the dev server.
+          </p>
         </div>
       )}
 
