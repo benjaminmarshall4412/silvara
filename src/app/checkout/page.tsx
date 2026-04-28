@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { envPublic } from "@/lib/env.public";
 import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
-import { formatUsd, getProduct } from "@/lib/products";
+import { formatUsdFine, getProduct } from "@/lib/products";
 
 export default function CheckoutPage() {
   const { lines, subtotalCents } = useCart();
@@ -151,7 +151,7 @@ export default function CheckoutPage() {
                 )}
               </div>
               <p className="font-mono-label text-sm font-medium">
-                {formatUsd(p.priceCents * line.quantity)}
+                {formatUsdFine(p.priceCents * line.quantity)}
               </p>
             </div>
           );
@@ -159,7 +159,7 @@ export default function CheckoutPage() {
         {discountCents > 0 ? (
           <div className="border-border flex justify-between border-t-2 border-dashed px-4 py-3">
             <span className="font-mono-label text-xs uppercase tracking-widest">Subtotal</span>
-            <span className="font-mono-label text-sm font-medium">{formatUsd(subtotalCents)}</span>
+            <span className="font-mono-label text-sm font-medium">{formatUsdFine(subtotalCents)}</span>
           </div>
         ) : null}
         {discountCents > 0 ? (
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
               First-order savings · −{promo?.pct ?? 0}%
             </span>
             <span className="font-mono-label text-sm font-medium text-foreground">
-              −{formatUsd(discountCents)}
+              −{formatUsdFine(discountCents)}
             </span>
           </div>
         ) : null}
@@ -177,7 +177,7 @@ export default function CheckoutPage() {
             {discountCents > 0 ? "Estimated total" : "Total due"}
           </span>
           <span className="font-heading text-xl font-extrabold">
-            {formatUsd(discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents)}
+            {formatUsdFine(discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents)}
           </span>
         </div>
       </div>
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
               role="alert"
               className="border-foreground text-foreground bg-muted border-4 px-4 py-3 font-mono-label text-[0.65rem] leading-relaxed uppercase tracking-wide"
             >
-              Stripe is charging list price ({formatUsd(subtotalCents)}) because the automatic coupon
+              Stripe is charging list price ({formatUsdFine(subtotalCents)}) because the automatic coupon
               was not attached. Set{" "}
               <span className="text-foreground">STRIPE_EMAIL_PROMO_COUPON_ID</span> in{" "}
               <span className="text-foreground">.env</span> to your Stripe coupon id (starts with{" "}
