@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Stripe catalog sync script output (local env snippet)
+stripe-price-ids.local.txt
+
 # vercel
 .vercel
 

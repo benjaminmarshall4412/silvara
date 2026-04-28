@@ -15,16 +15,21 @@ export async function POST(request: Request) {
     const mode = getCheckoutMode(lines)
     const line_items = toStripeLineItems(lines)
 
-    const session = await stripe.checkout.sessions.create({
-      // Embedded Checkout (API 2026+): use `embedded_page`, not legacy `embedded`.
+    // `payment_method_collection` is invalid for pure one-time carts (Stripe 2026+).
+    const baseParams = {
       ui_mode: "embedded_page",
       mode,
       line_items,
       return_url: `${envPublic.siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      billing_address_collection: "auto",
+      billing_address_collection: "auto" as const,
       allow_promotion_codes: true,
-      payment_method_collection: "always",
-    } as never)
+    }
+    const sessionParams =
+      mode === "subscription"
+        ? { ...baseParams, payment_method_collection: "always" as const }
+        : baseParams
+
+    const session = await stripe.checkout.sessions.create(sessionParams as never)
 
     if (!session.client_secret) {
       throw new Error("Stripe did not return a client secret")
