@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       return_url: `${envPublic.siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       billing_address_collection: "auto" as const,
       /** Match SILVARA storefront (Stripe-hosted UI; wallets like Link inherit theme colors). */
-      branding_settings: stripeCheckoutBranding(envPublic.siteUrl),
+      branding_settings: stripeCheckoutBranding(),
       /** No typed codes — signup uses an auto-applied coupon when eligible */
       allow_promotion_codes: false as const,
       ...(autoDiscount ? { discounts: autoDiscount } : {}),
