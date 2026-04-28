@@ -1,0 +1,6 @@
+{
+  "size": "1000x1200",
+  "n": 1,
+  "prompt": "MATCH THE AESTHETIC OF A REFERENCE 1-PAIR FLAT-LAY: vertical 5:6 top-down flat lay on the SAME textured beige concrete / packed-sand surface—not seamless paper. Hard directional side lighting from the left, strong shadow to the right, high contrast. Serious training kit tableau: (1) minimal paper weekly calendar card or small plain planner corner with NO readable words, just grid lines abstract; (2) one pair heather-grey thin crew socks with ribbed cuff, small black SILVERSOCKS on cuffs; (3) one matched athletic shoe; (4) slim metal water bottle or shaker, unbranded; (5) small microfiber towel fold. Items arranged in a clean column or L-shape with equal margins—editorial 'checklist' energy, not cluttered. Photorealistic. No people, no hands, no legible calendar text, no app UI, no logos except SILVERSOCKS on socks, no watermarks.",
+  "negative_prompt": "messy dump, gym bag explosion, readable dates, phone screen on, Apple logo, Nike swoosh, soft box lighting, white seamless, cartoon, illustration, extra pairs of socks, seven shoes, watermark, typography"
+}

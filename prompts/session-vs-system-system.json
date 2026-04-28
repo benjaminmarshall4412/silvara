@@ -1,0 +1,6 @@
+{
+  "size": "1600x700",
+  "n": 1,
+  "prompt": "MATCH THE AESTHETIC OF A REFERENCE 1-PAIR FLAT-LAY: wide horizontal 16:7 crop, top-down bird's eye on the SAME textured beige concrete / packed-sand surface—not seamless paper. Hard directional side lighting from the left, strong shadow to the right, high contrast. Subject = 'system' order: one pair of thin heather-grey performance crew socks folded parallel, ribbed cuff visible, small black SILVERSOCKS on cuffs (bold sans, same as reference), neatly placed beside ONE matched athletic shoe (black or dark neutral) sole or profile visible, aligned grid spacing, intentional composition. Extra subtle prop only if needed: plain black training log book or closed phone face-down—no screens on. Photorealistic catalog. No people, no other text, no watermarks.",
+  "negative_prompt": "messy pile, mismatched socks, five shoes, dirty mud, soft diffused light, seamless grey backdrop, lifestyle legs, cartoon, illustration, random typography, watermark, wrong sock brand text"
+}

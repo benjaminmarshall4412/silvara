@@ -1,0 +1,6 @@
+{
+  "size": "1600x1000",
+  "n": 1,
+  "prompt": "MATCH THE AESTHETIC OF A REFERENCE 1-PAIR FLAT-LAY: top-down bird's eye flat lay. Single closed plain brown kraft cardboard shipping box OR rigid kraft mailer, rectangular, flap closed, no labels, no stamps, no tape branding, no text—centered on the SAME textured beige concrete / packed-sand surface—not seamless paper. Same directional hard side lighting from the left, strong shadow to the right, high contrast. Modest size suggesting three pairs of thin crew socks inside; do not show socks outside the package. Photorealistic catalog for performance brand.",
+  "negative_prompt": "socks visible outside box, open box, packing materials spilling out, shipping label, barcode, tracking sticker, Amazon branding, logos, text on box, lifestyle, hands, soft diffused lighting, seamless grey backdrop, eye-level view, watermark"
+}

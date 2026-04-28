@@ -1,0 +1,6 @@
+{
+  "size": "1600x1000",
+  "n": 1,
+  "prompt": "MATCH THE AESTHETIC OF A REFERENCE 1-PAIR FLAT-LAY: top-down bird's eye flat lay. Three identical pairs of thin heather-grey performance crew socks on the SAME textured beige concrete / packed-sand surface—not seamless paper, not studio cyclorama. Same directional hard side lighting from the left, strong shadow to the right, high contrast (not soft even softbox). Arrange exactly three pairs in one horizontal row, all parallel, equal gaps, identical sock spec—same layout language as a retail 3-pack hero, no shipping props. The subscription story is communicated in the site copy, not in the photo. Ribbed cuff, smoother foot knit. Small black SILVERSOCKS on cuffs, bold sans, same visual weight in every instance—no other text, watermarks, or UI. Photorealistic catalog for performance brand.",
+  "negative_prompt": "envelope, mailer, cardboard box, tape, shipping label, packing slip, poly bag, rolled socks, tubes, stacks, retail blister pack, hang tags, seamless grey backdrop, soft diffused lighting, eye-level 3/4 view, one pair, two pairs, four pairs, five pairs, six pairs, mismatched pairs, lifestyle, feet, shoes, random typography, watermark"
+}

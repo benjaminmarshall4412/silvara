@@ -1,0 +1,6 @@
+{
+  "size": "1600x700",
+  "n": 1,
+  "prompt": "MATCH THE AESTHETIC OF A REFERENCE 1-PAIR FLAT-LAY: wide horizontal 16:7 crop, top-down editorial still life on the SAME textured beige concrete / packed-sand surface—not seamless paper. Hard directional side lighting from the left, strong shadow to the right, high contrast. Subject = 'session' chaos: open gym tote or duffel corner, mismatched old athletic socks loosely spilling or crumpled (not SILVERSOCKS branded), damp towel edge, tangled laces, one random running shoe half in frame—messy but real, not trashy. Muted desaturated palette, photorealistic. No people, no feet, no text, no logos, no watermarks.",
+  "negative_prompt": "neat grid, pristine flat lay, SILVERSOCKS logo, readable text, price tags, studio cyclorama, soft even lighting, lifestyle model, face, hands, cartoon, illustration, oversaturated, stock photo smile"
+}

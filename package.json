@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "stripe:sync-catalog": "node scripts/sync-stripe-catalog.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
+    "@stripe/react-stripe-js": "^6.3.0",
+    "@stripe/stripe-js": "^9.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.7.0",
@@ -17,6 +20,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shadcn": "^4.1.2",
+    "stripe": "^22.1.0",
     "tailwind-merge": "^3.5.0",
     "tw-animate-css": "^1.4.0"
   },
