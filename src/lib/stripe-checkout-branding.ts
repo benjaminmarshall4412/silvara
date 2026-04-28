@@ -1,8 +1,8 @@
 /**
  * Embedded Checkout inherits these from Checkout Session `branding_settings`.
- * Fonts are Stripe’s constrained list — Montserrat reads closest to the site headline feel.
+ * `ui_mode: embedded_page` supports colors/font/`display_name` but not custom `logo` (Stripe API).
  *
- * Logo/icon URLs must be HTTPS reachable by Stripe (omit on http:// localhost).
+ * HTTPS icon URL can be included when NEXT_PUBLIC_SITE_URL is https — Stripe loads it remotely.
  */
 
 const BRAND_HEX = {
@@ -19,7 +19,6 @@ export function stripeCheckoutBranding(siteBaseUrl: string): {
   border_style: "rectangular";
   font_family: "montserrat";
   icon?: { type: "url"; url: string };
-  logo?: { type: "url"; url: string };
 } {
   const clean = siteBaseUrl.replace(/\/$/, "");
   /** Stripe fetches logo/icon from this URL — must be reachable on the public internet (not dev-only). */
@@ -38,13 +37,9 @@ export function stripeCheckoutBranding(siteBaseUrl: string): {
   }
 
   const faviconUrl = `${clean}/silvarafavicon.jpg`;
-  const encodedLogo = encodeURIComponent(
-    "silvera_logo_black_page-0001__1_-removebg-preview.png",
-  );
 
   return {
     ...base,
     icon: { type: "url" as const, url: faviconUrl },
-    logo: { type: "url" as const, url: `${clean}/${encodedLogo}` },
   };
 }

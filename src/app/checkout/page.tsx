@@ -6,7 +6,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { envPublic } from "@/lib/env.public";
@@ -17,13 +17,18 @@ import { formatUsd, getProduct } from "@/lib/products";
 export default function CheckoutPage() {
   const { lines, subtotalCents } = useCart();
   const { state: promo } = usePromoEligibility();
+  const linesKey = useMemo(() => JSON.stringify(lines), [lines]);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [isCreatingSession, setIsCreatingSession] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [sessionError, setSessionError] = useState<string | null>(null);
 
+  /** Estimated savings whenever the promo cookie qualifies — Stripe applies same rules when coupon id is configured. */
+  const eligiblePromo =
+    !!(promo && promo.pct > 0 && promo.claimedOnThisDevice);
+
+  const pct = promo?.pct ?? 0;
   const discountCents =
-    promo?.discountWillApplyAtCheckout && promo.pct > 0
-      ? Math.round(subtotalCents * (promo.pct / 100))
+    eligiblePromo && pct > 0
+      ? Math.round(subtotalCents * (pct / 100))
       : 0;
   const estimatedTotalAfterPromo = Math.max(0, subtotalCents - discountCents);
   const stripePromise = useMemo(
@@ -33,6 +38,53 @@ export default function CheckoutPage() {
         : null,
     [],
   );
+
+  const loadCheckoutSession = useCallback(
+    async (signal?: AbortSignal) => {
+      setSessionError(null);
+      try {
+        const response = await fetch("/api/stripe/create-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lines }),
+          signal,
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(payload?.error ?? "Unable to start checkout");
+        }
+
+        if (!payload?.clientSecret) {
+          throw new Error("Missing Stripe client secret");
+        }
+
+        setClientSecret(payload.clientSecret);
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setSessionError(
+          error instanceof Error ? error.message : "Unable to start checkout",
+        );
+      }
+    },
+    [lines],
+  );
+
+  useEffect(() => {
+    setSessionError(null);
+  }, [linesKey]);
+
+  useEffect(() => {
+    if (
+      lines.length === 0 ||
+      !envPublic.stripePublishableKey ||
+      clientSecret
+    )
+      return;
+    const controller = new AbortController();
+    void loadCheckoutSession(controller.signal);
+    return () => controller.abort();
+  }, [linesKey, clientSecret, lines.length, loadCheckoutSession]);
 
   if (lines.length === 0) {
     return (
@@ -53,35 +105,11 @@ export default function CheckoutPage() {
     );
   }
 
-  async function startCheckout() {
-    try {
-      setIsCreatingSession(true);
-      setErrorMessage(null);
-
-      const response = await fetch("/api/stripe/create-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lines }),
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload?.error ?? "Unable to start checkout")
-      }
-
-      if (!payload?.clientSecret) {
-        throw new Error("Missing Stripe client secret")
-      }
-
-      setClientSecret(payload.clientSecret);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Unable to start checkout",
-      );
-    } finally {
-      setIsCreatingSession(false);
-    }
-  }
+  const showCheckoutSpinner =
+    envPublic.stripePublishableKey &&
+    !clientSecret &&
+    !sessionError &&
+    lines.length > 0;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:py-16">
@@ -142,20 +170,20 @@ export default function CheckoutPage() {
           </span>
         </div>
       </div>
-      {promo &&
-      promo.pct > 0 &&
-      !promo.discountWillApplyAtCheckout &&
-      discountCents === 0 &&
-      (!promo.claimedOnThisDevice || !promo.stripeCouponConfigured) ? (
-        <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
-          {!promo.claimedOnThisDevice ? (
-            <>Add your email using the {promo.pct}% offer on the site first, then your savings will show here.</>
-          ) : (
-            <>
-              You&apos;re enrolled for {promo.pct}% off. If this total doesn&apos;t include it yet,
-              check back shortly — we may still be finishing the link to payment.
-            </>
-          )}
+      {promo && promo.pct > 0 && !eligiblePromo ? (
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          Add your email using the {promo.pct}% offer on the site first — totals here will reflect savings
+          after you qualify.
+        </p>
+      ) : null}
+
+      {eligiblePromo &&
+      discountCents > 0 &&
+      promo &&
+      !promo.discountWillApplyAtCheckout ? (
+        <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+          Estimates assume your signup offer. Stripe will apply it at payment when{" "}
+          <code className="text-foreground">STRIPE_EMAIL_PROMO_COUPON_ID</code> matches your signup coupon on the server.
         </p>
       ) : null}
 
@@ -172,35 +200,43 @@ export default function CheckoutPage() {
         </div>
       ) : null}
 
-      {!clientSecret ? (
+      {showCheckoutSpinner ? (
+        <div className="border-foreground mt-10 border-4 px-6 py-8 text-center">
+          <p className="font-mono-label animate-pulse text-xs uppercase tracking-widest text-muted-foreground">
+            Opening secure checkout…
+          </p>
+        </div>
+      ) : sessionError ? (
         <div className="mt-10 space-y-4">
+          <p className="font-mono-label text-xs uppercase tracking-wide text-red-700">
+            {sessionError}
+          </p>
           <Button
             type="button"
             size="lg"
-            disabled={isCreatingSession || !envPublic.stripePublishableKey}
-            onClick={startCheckout}
             className="h-14 w-full rounded-none border-2 border-transparent bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90"
+            onClick={() => {
+              setSessionError(null);
+              void loadCheckoutSession();
+            }}
           >
-            {isCreatingSession ? "Starting secure checkout..." : "Continue to secure checkout"}
+            Try again
           </Button>
-          <p className="text-xs text-muted-foreground">
-            Powered by Stripe. Taxes, payment, and billing details are handled
-            on secure Stripe-hosted infrastructure.
-          </p>
-          {errorMessage ? (
-            <p className="font-mono-label text-xs uppercase tracking-wide text-red-700">
-              {errorMessage}
-            </p>
-          ) : null}
         </div>
-      ) : stripePromise ? (
-        <div className="mt-8 border-4 border-foreground bg-[#f8f7f5] p-2 md:p-4">
-          <EmbeddedCheckoutProvider
-            stripe={stripePromise}
-            options={{ clientSecret }}
-          >
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
+      ) : clientSecret && stripePromise ? (
+        <div className="mt-8 space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Powered by Stripe. Taxes, payment, and billing details are handled on secure
+            Stripe-hosted infrastructure.
+          </p>
+          <div className="border-foreground bg-[#f8f7f5] border-4 p-2 md:p-4">
+            <EmbeddedCheckoutProvider
+              stripe={stripePromise}
+              options={{ clientSecret }}
+            >
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+          </div>
         </div>
       ) : (
         <div className="mt-8 border-4 border-foreground bg-muted px-4 py-4">

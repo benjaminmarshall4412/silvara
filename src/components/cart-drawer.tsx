@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
+import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { formatUsd, getProduct } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,16 @@ export function CartDrawer() {
     setQty,
     remove,
   } = useCart();
+  const { state: promo } = usePromoEligibility();
+
+  const eligiblePromo =
+    !!(promo && promo.pct > 0 && promo.claimedOnThisDevice);
+  const pct = promo?.pct ?? 0;
+  const promoDiscountCents =
+    eligiblePromo && pct > 0 && lines.length > 0
+      ? Math.round(subtotalCents * (pct / 100))
+      : 0;
+  const estimatedTotalAfterPromo = Math.max(0, subtotalCents - promoDiscountCents);
 
   return (
     <>
@@ -120,14 +131,43 @@ export function CartDrawer() {
         </div>
 
         <div className="border-t-4 border-foreground p-5">
-          <div className="flex items-baseline justify-between gap-4">
-            <span className="font-mono-label text-sm font-semibold uppercase tracking-wide text-foreground/80">
-              Subtotal
-            </span>
-            <span className="font-heading text-2xl font-extrabold">
-              {formatUsd(subtotalCents)}
-            </span>
-          </div>
+          {promoDiscountCents > 0 ? (
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="font-mono-label text-sm font-semibold uppercase tracking-wide text-foreground/80">
+                  Subtotal
+                </span>
+                <span className="font-heading text-xl font-extrabold tabular-nums line-through decoration-2 decoration-foreground/40">
+                  {formatUsd(subtotalCents)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="font-mono-label text-[0.65rem] uppercase tracking-widest text-muted-foreground">
+                  First-order · −{pct}%
+                </span>
+                <span className="font-mono-label text-sm font-semibold tabular-nums text-foreground">
+                  −{formatUsd(promoDiscountCents)}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 border-t-2 border-foreground pt-3">
+                <span className="font-mono-label text-xs font-bold uppercase tracking-widest">
+                  Estimated total
+                </span>
+                <span className="font-heading text-2xl font-extrabold tabular-nums">
+                  {formatUsd(estimatedTotalAfterPromo)}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-baseline justify-between gap-4">
+              <span className="font-mono-label text-sm font-semibold uppercase tracking-wide text-foreground/80">
+                Subtotal
+              </span>
+              <span className="font-heading text-2xl font-extrabold">
+                {formatUsd(subtotalCents)}
+              </span>
+            </div>
+          )}
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Shipping and tax calculated at checkout. Rotation ships on your
             schedule after account setup.
