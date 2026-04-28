@@ -50,6 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${syne.variable} ${spaceGrotesk.variable} ${ibmMono.variable} h-full scroll-smooth antialiased`}
     >
       <body className="flex min-h-full flex-col">

@@ -33,6 +33,7 @@ export function SiteHeader() {
             height={32}
             priority
             className="h-7 w-auto md:h-8"
+            style={{ width: "auto", height: "auto" }}
           />
         </Link>
         <nav

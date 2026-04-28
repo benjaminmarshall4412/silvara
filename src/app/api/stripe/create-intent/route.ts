@@ -16,8 +16,8 @@ export async function POST(request: Request) {
     const line_items = toStripeLineItems(lines)
 
     const session = await stripe.checkout.sessions.create({
-      // Stripe runtime supports embedded checkout, but current SDK typings lag here.
-      ui_mode: "embedded",
+      // Embedded Checkout (API 2026+): use `embedded_page`, not legacy `embedded`.
+      ui_mode: "embedded_page",
       mode,
       line_items,
       return_url: `${envPublic.siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
