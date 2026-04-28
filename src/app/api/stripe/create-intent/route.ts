@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       promoEligible && couponId ? [{ coupon: couponId }] : undefined
 
     // `payment_method_collection` is invalid for pure one-time carts (Stripe 2026+).
+    // Stripe forbids `allow_promotion_codes` and `discounts` on the same session — use one or the other.
     const baseParams = {
       ui_mode: "embedded_page",
       mode,
@@ -40,9 +41,9 @@ export async function POST(request: Request) {
       billing_address_collection: "auto" as const,
       /** Match SILVARA storefront (Stripe-hosted UI; wallets like Link inherit theme colors). */
       branding_settings: stripeCheckoutBranding(),
-      /** No typed codes — signup uses an auto-applied coupon when eligible */
-      allow_promotion_codes: false as const,
-      ...(autoDiscount ? { discounts: autoDiscount } : {}),
+      ...(autoDiscount
+        ? { discounts: autoDiscount }
+        : { allow_promotion_codes: false as const }),
     }
     const sessionParams =
       mode === "subscription"
