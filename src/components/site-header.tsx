@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart-context";
 import { cn } from "@/lib/utils";
 
 const nav = [
+  { href: "/blog", label: "Read" },
   { href: "#system", label: "Workweek" },
   { href: "#loadout", label: "Kit" },
   { href: "#failure-mode", label: "Why smell" },
@@ -40,15 +41,25 @@ export function SiteHeader() {
           className="hidden max-w-xl flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-1 md:flex"
           aria-label="Primary"
         >
-          {nav.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
-            >
-              {n.label}
-            </a>
-          ))}
+          {nav.map((n) =>
+            n.href.startsWith("/") ? (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
+              >
+                {n.label}
+              </Link>
+            ) : (
+              <a
+                key={n.href}
+                href={n.href}
+                className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
+              >
+                {n.label}
+              </a>
+            ),
+          )}
         </nav>
         <div className="flex items-center gap-2">
           <Button

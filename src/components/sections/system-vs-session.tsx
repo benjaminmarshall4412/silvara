@@ -1,4 +1,16 @@
 import Image from "next/image";
+import Link from "next/link";
+
+import { blogPosts } from "@/lib/blog";
+import { cn } from "@/lib/utils";
+
+function formatBlogDate(iso: string) {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export function SystemVsSession() {
   return (
@@ -9,7 +21,7 @@ export function SystemVsSession() {
     >
       <div className="mx-auto max-w-6xl">
         <p className="font-mono-label text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          30-second read
+          Field notes
         </p>
         <h2
           id="system-heading"
@@ -19,54 +31,77 @@ export function SystemVsSession() {
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-snug text-foreground md:text-lg">
           You budget boots, insoles, and wash day — then grab whatever cotton was
-          dry? That is the gap.
+          dry? That is the gap. Tap through for full reads.
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <article className="flex flex-col border-4 border-foreground bg-background">
-            <div className="relative aspect-[16/7] w-full min-h-[160px] overflow-hidden border-b-4 border-foreground">
-              <Image
-                src="/session.jpg"
-                alt="Junk drawer mindset — mismatched socks and work bag chaos"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
-            <div className="p-5 md:p-6">
-              <h3 className="font-heading text-xl font-extrabold uppercase">
-                Junk drawer
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm leading-snug text-foreground/90 md:text-base">
-                <li>• Whatever was dry from the laundry pile.</li>
-                <li>• Wet ≠ smell. Bacteria = smell.</li>
-                <li>• Sock never got a real spec.</li>
-              </ul>
-            </div>
-          </article>
-
-          <article className="flex flex-col border-4 border-foreground bg-surface-inverse text-background">
-            <div className="relative aspect-[16/7] w-full min-h-[160px] overflow-hidden border-b-4 border-background">
-              <Image
-                src="/system.jpg"
-                alt="Workweek setup — work boots and SILVARA crew socks, ordered flat lay"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover opacity-95"
-              />
-            </div>
-            <div className="p-5 md:p-6">
-              <h3 className="font-heading text-xl font-extrabold uppercase text-background">
-                Workweek system
-              </h3>
-              <ul className="mt-3 space-y-2 text-sm leading-snug text-background/95 md:text-base">
-                <li>• Boots + sock spec matched to the shift.</li>
-                <li>• Silver-active yarn on the fiber.</li>
-                <li>• Enough clean pairs — no damp re-wear.</li>
-              </ul>
-            </div>
-          </article>
+          {blogPosts.map((post) => (
+            <Link
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              className={cn(
+                "group flex flex-col border-4 border-foreground outline-offset-4 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-foreground",
+                post.theme === "inverse"
+                  ? "bg-surface-inverse text-background hover:bg-surface-inverse/92"
+                  : "bg-background hover:bg-background/92",
+              )}
+              aria-labelledby={`blog-card-${post.slug}`}
+            >
+              <div
+                className={cn(
+                  "relative aspect-[16/7] w-full min-h-[160px] overflow-hidden border-b-4 border-foreground",
+                  post.theme === "inverse" && "border-background opacity-95",
+                )}
+              >
+                <Image
+                  src={post.imageSrc}
+                  alt={post.imageAlt}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                />
+              </div>
+              <div className="flex flex-1 flex-col p-5 md:p-6">
+                <span
+                  className={cn(
+                    "font-mono-label text-[0.65rem] font-bold uppercase tracking-[0.2em]",
+                    post.theme === "inverse"
+                      ? "text-background/65"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {post.eyebrow} · {formatBlogDate(post.date)}
+                </span>
+                <span
+                  id={`blog-card-${post.slug}`}
+                  className="font-heading mt-2 text-xl font-extrabold uppercase leading-snug md:text-2xl"
+                >
+                  {post.title}
+                </span>
+                <p
+                  className={cn(
+                    "mt-3 flex-1 text-sm leading-snug md:text-[0.95rem]",
+                    post.theme === "inverse" ? "text-background/90" : "text-foreground/90",
+                  )}
+                >
+                  {post.description}
+                </p>
+                <span className="font-mono-label mt-4 text-[0.7rem] font-bold uppercase tracking-[0.25em] text-accent">
+                  Read article →
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
+
+        <p className="mt-8 text-center md:text-left">
+          <Link
+            href="/blog"
+            className="font-mono-label text-sm font-semibold uppercase tracking-wide text-foreground underline decoration-2 underline-offset-4 hover:text-accent"
+          >
+            Browse all reads →
+          </Link>
+        </p>
       </div>
     </section>
   );

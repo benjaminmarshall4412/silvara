@@ -16,6 +16,12 @@ export function SiteFooter() {
         </div>
         <div className="flex flex-col gap-4 md:items-end">
           <Link
+            href="/blog"
+            className="font-mono-label text-sm font-bold uppercase tracking-wide text-background hover:underline"
+          >
+            Field notes
+          </Link>
+          <Link
             href="/checkout"
             className="font-mono-label text-sm font-bold uppercase tracking-wide text-background hover:underline"
           >
