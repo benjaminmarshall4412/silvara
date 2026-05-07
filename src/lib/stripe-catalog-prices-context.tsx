@@ -79,15 +79,13 @@ export function StripeCatalogPricesProvider({ children }: { children: ReactNode 
   const value = useMemo((): CatalogPricesContextValue => {
     const base = defaultAmounts();
     const merged = { ...base, ...(payload?.prices ?? {}) };
-    const currency = (
-      payload?.currency ?? (region === "uk" ? "gbp" : "usd")
-    ).toUpperCase();
+    const currency = (payload?.currency ?? "usd").toUpperCase();
     return {
       unitAmountCentsByBundle: merged,
       currency,
       ready,
     };
-  }, [payload, ready, region]);
+  }, [payload, ready]);
 
   return (
     <StripeCatalogPricesContext.Provider value={value}>
