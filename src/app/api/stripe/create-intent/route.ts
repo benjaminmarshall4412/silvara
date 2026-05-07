@@ -9,12 +9,17 @@ import {
 } from "@/lib/promo-cookie"
 import { getStripeForRegion } from "@/lib/stripe/server"
 import { stripeCheckoutBranding } from "@/lib/stripe-checkout-branding"
-import { isSiteRegion } from "@/lib/site-region"
+import { isSiteRegion, type SiteRegion } from "@/lib/site-region"
 import {
   getCheckoutMode,
   toStripeLineItems,
   validateCheckoutLines,
 } from "@/lib/stripe/prices"
+
+/** Countries Stripe Checkout may offer for shipping address (ISO 3166-1 alpha-2). */
+function shippingAllowedCountries(region: SiteRegion): string[] {
+  return region === "uk" ? ["GB"] : ["US"]
+}
 
 export async function POST(request: Request) {
   try {
@@ -42,6 +47,10 @@ export async function POST(request: Request) {
       line_items,
       return_url: `${siteBase}/${region}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       billing_address_collection: "auto" as const,
+      /** Physical fulfillment — collected by Stripe on the embedded Checkout page. */
+      shipping_address_collection: {
+        allowed_countries: shippingAllowedCountries(region),
+      },
       /** Match SILVARA storefront (Stripe-hosted UI; wallets like Link inherit theme colors). */
       branding_settings: stripeCheckoutBranding(),
       ...(autoDiscount
