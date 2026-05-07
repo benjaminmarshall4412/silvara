@@ -8,9 +8,14 @@ import {
   getPostMeta,
   loadPostMarkdown,
 } from "@/lib/blog";
+import {
+  SITE_REGIONS,
+  validateSiteRegionParam,
+  withSiteRegion,
+} from "@/lib/site-region";
 
 type Props = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ region: string; slug: string }>;
 };
 
 function formatBlogDate(iso: string) {
@@ -22,7 +27,9 @@ function formatBlogDate(iso: string) {
 }
 
 export function generateStaticParams() {
-  return blogPosts.map((p) => ({ slug: p.slug }));
+  return SITE_REGIONS.flatMap((region) =>
+    blogPosts.map((p) => ({ region, slug: p.slug })),
+  );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -40,7 +47,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Props) {
-  const { slug } = await params;
+  const { region: rawRegion, slug } = await params;
+  const region = validateSiteRegionParam(rawRegion);
+  if (!region) notFound();
+
   const meta = getPostMeta(slug);
   const raw = await loadPostMarkdown(slug);
 
@@ -48,10 +58,12 @@ export default async function BlogPostPage({ params }: Props) {
     notFound();
   }
 
+  const blogHome = withSiteRegion(region, "/blog");
+
   return (
     <article className="mx-auto max-w-3xl px-4 py-12 md:px-6 md:py-16">
       <p className="font-mono-label text-[0.65rem] uppercase tracking-[0.28em] text-muted-foreground">
-        <Link href="/blog" className="hover:text-foreground">
+        <Link href={blogHome} className="hover:text-foreground">
           Field notes
         </Link>
         {" · "}
@@ -71,13 +83,13 @@ export default async function BlogPostPage({ params }: Props) {
       </div>
       <div className="mt-16 border-t-4 border-foreground pt-8">
         <Link
-          href="/#loadouts"
+          href={withSiteRegion(region, "/#loadouts")}
           className="inline-flex min-h-12 cursor-pointer items-center border-4 border-transparent bg-accent px-6 font-heading text-sm font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90 md:text-base"
         >
           Shop loadouts
         </Link>
         <Link
-          href="/blog"
+          href={blogHome}
           className="ml-6 font-mono-label text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           All reads

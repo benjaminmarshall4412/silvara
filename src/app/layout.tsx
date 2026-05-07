@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk, Syne } from "next/font/google";
 
-import { CartDrawer } from "@/components/cart-drawer";
-import { EmailPromoModal } from "@/components/email-promo-modal";
-import { SiteHeader } from "@/components/site-header";
-import { CartProvider } from "@/lib/cart-context";
-import { PromoEligibilityProvider } from "@/lib/promo-eligibility-context";
-
 import "./globals.css";
 
 const syne = Syne({
@@ -54,16 +48,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${syne.variable} ${spaceGrotesk.variable} ${ibmMono.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="flex min-h-full flex-col">
-        <CartProvider>
-          <PromoEligibilityProvider>
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <CartDrawer />
-            <EmailPromoModal />
-          </PromoEligibilityProvider>
-        </CartProvider>
-      </body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

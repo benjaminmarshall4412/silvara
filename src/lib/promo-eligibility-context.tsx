@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from "react";
 
+import type { SiteRegion } from "@/lib/site-region";
+
 export type PromoEligibilityState = {
   discountWillApplyAtCheckout: boolean;
   claimedOnThisDevice: boolean;
@@ -25,11 +27,22 @@ type Ctx = {
 
 const PromoEligibilityContext = createContext<Ctx | null>(null);
 
-export function PromoEligibilityProvider({ children }: { children: ReactNode }) {
+export function PromoEligibilityProvider({
+  children,
+  region,
+}: {
+  children: ReactNode;
+  region: SiteRegion;
+}) {
   const [state, setState] = useState<PromoEligibilityState | null>(null);
 
   const refetch = useCallback(async () => {
-    const r = await fetch("/api/promo-eligibility", { credentials: "same-origin" });
+    const r = await fetch(
+      `/api/promo-eligibility?region=${encodeURIComponent(region)}`,
+      { credentials: "same-origin" },
+    );
+    if (!r.ok) return;
+
     const d = (await r.json()) as Partial<PromoEligibilityState>;
     const pctRaw = d.pct;
     const pct =
@@ -41,7 +54,7 @@ export function PromoEligibilityProvider({ children }: { children: ReactNode }) 
       stripeCouponConfigured: !!d.stripeCouponConfigured,
       pct: Math.min(90, Math.max(0, pct)),
     });
-  }, []);
+  }, [region]);
 
   useEffect(() => {
     queueMicrotask(() => {

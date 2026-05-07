@@ -5,10 +5,17 @@ import Link from "next/link";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
-import { formatUsdFine, getProduct } from "@/lib/products";
+import { useSiteRegion } from "@/lib/site-region-context";
+import { withSiteRegion } from "@/lib/site-region";
+import { formatMoney, getProduct } from "@/lib/products";
+import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
 export function CartDrawer() {
+  const region = useSiteRegion();
+  const checkoutHref = withSiteRegion(region, "/checkout");
+  const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
+
   const {
     lines,
     openCart,
@@ -70,6 +77,7 @@ export function CartDrawer() {
             lines.map((line) => {
               const p = getProduct(line.id);
               if (!p) return null;
+              const unit = unitAmountCentsByBundle[line.id] ?? p.priceCents;
               return (
                 <div
                   key={line.id}
@@ -87,7 +95,7 @@ export function CartDrawer() {
                       </p>
                     </div>
                     <p className="shrink-0 font-mono-label text-sm font-medium">
-                      {formatUsdFine(p.priceCents * line.quantity)}
+                      {formatMoney(unit * line.quantity, currency)}
                     </p>
                   </div>
                   <div className="mt-3 flex items-center gap-2">
@@ -138,7 +146,7 @@ export function CartDrawer() {
                   Subtotal
                 </span>
                 <span className="font-heading text-xl font-extrabold tabular-nums line-through decoration-2 decoration-foreground/40">
-                  {formatUsdFine(subtotalCents)}
+                  {formatMoney(subtotalCents, currency)}
                 </span>
               </div>
               <div className="flex justify-between gap-4">
@@ -146,7 +154,7 @@ export function CartDrawer() {
                   First-order · −{pct}%
                 </span>
                 <span className="font-mono-label text-sm font-semibold tabular-nums text-foreground">
-                  −{formatUsdFine(promoDiscountCents)}
+                  −{formatMoney(promoDiscountCents, currency)}
                 </span>
               </div>
               <div className="flex items-baseline justify-between gap-4 border-t-2 border-foreground pt-3">
@@ -154,7 +162,7 @@ export function CartDrawer() {
                   Estimated total
                 </span>
                 <span className="font-heading text-2xl font-extrabold tabular-nums">
-                  {formatUsdFine(estimatedTotalAfterPromo)}
+                  {formatMoney(estimatedTotalAfterPromo, currency)}
                 </span>
               </div>
             </div>
@@ -164,7 +172,7 @@ export function CartDrawer() {
                 Subtotal
               </span>
               <span className="font-heading text-2xl font-extrabold">
-                {formatUsdFine(subtotalCents)}
+                {formatMoney(subtotalCents, currency)}
               </span>
             </div>
           )}
@@ -183,7 +191,7 @@ export function CartDrawer() {
             </span>
           ) : (
             <Link
-              href="/checkout"
+              href={checkoutHref}
               onClick={() => setOpenCart(false)}
               className={cn(
                 buttonVariants({ variant: "default", size: "lg" }),

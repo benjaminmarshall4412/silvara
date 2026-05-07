@@ -80,3 +80,18 @@ export function formatUsdFine(cents: number): string {
     maximumFractionDigits: 2,
   }).format(cents / 100);
 }
+
+/** Format minor units using Stripe currency (ISO 4217). */
+export function formatMoney(cents: number, currencyCode: string): string {
+  const code = currencyCode.length === 3 ? currencyCode.toUpperCase() : "USD";
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(cents / 100);
+  } catch {
+    return formatUsdFine(cents);
+  }
+}

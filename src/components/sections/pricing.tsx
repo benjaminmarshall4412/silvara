@@ -5,7 +5,8 @@ import Image from "next/image";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import type { BundleId, Product } from "@/lib/products";
-import { PRODUCTS, formatUsdFine } from "@/lib/products";
+import { PRODUCTS, formatMoney } from "@/lib/products";
+import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
 type OneTimeBundleProduct = Product & { id: Exclude<BundleId, "rotation"> };
@@ -42,11 +43,13 @@ function BundlePriceRow({
   featured,
   pct,
   showDiscount,
+  currency,
 }: {
   priceCents: number;
   featured: boolean;
   pct: number;
   showDiscount: boolean;
+  currency: string;
 }) {
   const after = applyPromoToCents(priceCents, pct);
   const inv = featured;
@@ -66,7 +69,7 @@ function BundlePriceRow({
               strike,
             )}
           >
-            {formatUsdFine(priceCents)}
+            {formatMoney(priceCents, currency)}
           </span>
           <span
             className={cn(
@@ -74,7 +77,7 @@ function BundlePriceRow({
               main,
             )}
           >
-            {formatUsdFine(after)}
+            {formatMoney(after, currency)}
           </span>
           <span
             className={cn(
@@ -92,7 +95,7 @@ function BundlePriceRow({
             main,
           )}
         >
-          {formatUsdFine(priceCents)}
+          {formatMoney(priceCents, currency)}
         </p>
       )}
     </div>
@@ -101,11 +104,15 @@ function BundlePriceRow({
 
 function BundleUnitNote({
   p,
+  priceCents,
+  currency,
   showDiscount,
   pct,
   featured,
 }: {
   p: OneTimeBundleProduct;
+  priceCents: number;
+  currency: string;
   showDiscount: boolean;
   pct: number;
   featured: boolean;
@@ -114,31 +121,34 @@ function BundleUnitNote({
     "mt-2 text-sm leading-snug md:text-base",
     featured ? "text-background/90" : "text-muted-foreground",
   );
-  if (!showDiscount || p.id === "single") {
+  if (p.id === "single") {
     return <p className={base}>{p.unitNote}</p>;
   }
-  const after = applyPromoToCents(p.priceCents, pct);
   const pairs = p.id === "triple" ? 3 : 6;
-  const per = Math.round(after / pairs);
+  const bundleTotal =
+    showDiscount && pct > 0 ? applyPromoToCents(priceCents, pct) : priceCents;
+  const per = Math.round(bundleTotal / pairs);
   if (p.id === "triple") {
     return (
       <p className={base}>
-        {formatUsdFine(per)} / pair bundled.
+        {formatMoney(per, currency)} / pair bundled.
       </p>
     );
   }
   return (
     <p className={base}>
-      {formatUsdFine(per)} / pair — best per-shift cost.
+      {formatMoney(per, currency)} / pair — best per-shift cost.
     </p>
   );
 }
 
 export function Pricing() {
+  const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const { state: promoState } = usePromoEligibility();
   const showDiscount =
     !!promoState && promoState.claimedOnThisDevice && promoState.pct > 0;
   const pct = promoState?.pct ?? 15;
+  const rotationCents = unitAmountCentsByBundle[rotation.id];
 
   return (
     <section
@@ -231,7 +241,9 @@ export function Pricing() {
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-6 md:mt-8 md:grid-cols-3 md:gap-6 lg:gap-8 xl:gap-10">
-          {bundles.map((p) => (
+          {bundles.map((p) => {
+            const displayCents = unitAmountCentsByBundle[p.id];
+            return (
             <article
               key={p.id}
               className={cn(
@@ -282,13 +294,16 @@ export function Pricing() {
                 )}
               >
                 <BundlePriceRow
-                  priceCents={p.priceCents}
+                  priceCents={displayCents}
                   featured={!!p.featured}
                   pct={pct}
                   showDiscount={showDiscount}
+                  currency={currency}
                 />
                 <BundleUnitNote
                   p={p}
+                  priceCents={displayCents}
+                  currency={currency}
                   showDiscount={showDiscount}
                   pct={pct}
                   featured={!!p.featured}
@@ -317,7 +332,8 @@ export function Pricing() {
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
 
         {/* Fresh rotation */}
@@ -379,10 +395,10 @@ export function Pricing() {
                   {showDiscount ? (
                     <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
                       <span className="font-heading text-3xl font-extrabold tabular-nums line-through decoration-2 text-background/45 md:text-4xl">
-                        {formatUsdFine(rotation.priceCents)}
+                        {formatMoney(rotationCents, currency)}
                       </span>
                       <span className="font-heading text-3xl font-extrabold tabular-nums text-background md:text-4xl">
-                        {formatUsdFine(applyPromoToCents(rotation.priceCents, pct))}
+                        {formatMoney(applyPromoToCents(rotationCents, pct), currency)}
                       </span>
                       <span className="font-mono-label rounded-sm border border-background/45 px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-background">
                         −{pct}%
@@ -390,7 +406,7 @@ export function Pricing() {
                     </div>
                   ) : (
                     <p className="font-heading mt-0.5 text-3xl font-extrabold md:text-4xl text-background">
-                      {formatUsdFine(rotation.priceCents)}
+                      {formatMoney(rotationCents, currency)}
                     </p>
                   )}
                   <p className="mt-1 text-sm text-background/75">

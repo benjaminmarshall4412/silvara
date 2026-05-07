@@ -13,6 +13,7 @@ import {
 import type { CartLine } from "@/lib/cart-types";
 import type { BundleId } from "@/lib/products";
 import { getProduct } from "@/lib/products";
+import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { clearPersistedCart, persistCart, readPersistedCart } from "@/lib/cart-storage";
 
 type CartContextValue = {
@@ -30,6 +31,7 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { unitAmountCentsByBundle } = useStripeCatalogPrices();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [openCart, setOpenCart] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
@@ -86,11 +88,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     for (const line of lines) {
       const p = getProduct(line.id);
       if (!p) continue;
+      const unit =
+        unitAmountCentsByBundle[line.id] ?? p.priceCents;
       count += line.quantity;
-      sub += p.priceCents * line.quantity;
+      sub += unit * line.quantity;
     }
     return { itemCount: count, subtotalCents: sub };
-  }, [lines]);
+  }, [lines, unitAmountCentsByBundle]);
 
   const value = useMemo(
     () => ({

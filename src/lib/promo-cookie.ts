@@ -7,9 +7,14 @@ export const SILVARA_PROMO_COOKIE_NAME = "silvara_promo_eligible";
 function signingSecret(): string {
   const explicit = process.env.PROMO_COOKIE_SECRET;
   if (explicit && explicit.length >= 24) return explicit;
-  const sk = process.env.STRIPE_SECRET_KEY;
-  if (!sk) return "silvara-dev-promo-signing-fallback";
-  return createHash("sha256").update(`silvara:promo:${sk}`).digest("hex");
+  const us = process.env.STRIPE_SECRET_KEY_US ?? "";
+  const uk = process.env.STRIPE_SECRET_KEY_UK ?? "";
+  if (us || uk) {
+    return createHash("sha256")
+      .update(`silvara:promo:${us}:${uk}`)
+      .digest("hex");
+  }
+  return "silvara-dev-promo-signing-fallback";
 }
 
 /** Mint cookie value (signed expiry). Not secret-bound to email so we tie trust to signup endpoint only + HMAC */

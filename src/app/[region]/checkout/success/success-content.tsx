@@ -1,63 +1,67 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { useCart } from "@/lib/cart-context"
+import { useCart } from "@/lib/cart-context";
+import { useSiteRegion } from "@/lib/site-region-context";
+import { withSiteRegion } from "@/lib/site-region";
 
 type SessionStatus = {
-  status: string
-  paymentStatus: string
-  customerEmail: string | null
-}
+  status: string;
+  paymentStatus: string;
+  customerEmail: string | null;
+};
 
 export function SuccessContent() {
-  const searchParams = useSearchParams()
-  const sessionId = searchParams.get("session_id")
-  const { clear } = useCart()
-  const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const region = useSiteRegion();
+  const loadouts = withSiteRegion(region, "/#loadouts");
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const { clear } = useCart();
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    clear()
-  }, [clear])
+    clear();
+  }, [clear]);
 
   useEffect(() => {
-    if (!sessionId) return
-    const sessionIdParam = sessionId
+    if (!sessionId) return;
+    const sessionIdParam = sessionId;
 
-    let canceled = false
+    let canceled = false;
 
     async function loadStatus() {
       try {
         const response = await fetch(
-          `/api/stripe/session-status?session_id=${encodeURIComponent(sessionIdParam)}`,
-        )
-        const payload = await response.json()
+          `/api/stripe/session-status?session_id=${encodeURIComponent(sessionIdParam)}&region=${encodeURIComponent(region)}`,
+        );
+        const payload = await response.json();
 
         if (!response.ok) {
-          throw new Error(payload?.error ?? "Unable to load payment status")
+          throw new Error(payload?.error ?? "Unable to load payment status");
         }
 
         if (!canceled) {
-          setSessionStatus(payload)
+          setSessionStatus(payload);
         }
       } catch (error) {
         if (!canceled) {
           setErrorMessage(
             error instanceof Error ? error.message : "Unable to load payment status",
-          )
+          );
         }
       }
     }
 
-    void loadStatus()
+    void loadStatus();
 
     return () => {
-      canceled = true
-    }
-  }, [sessionId])
+      canceled = true;
+    };
+  }, [sessionId]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 md:py-20">
@@ -98,11 +102,11 @@ export function SuccessContent() {
       ) : null}
 
       <Link
-        href="/#loadouts"
+        href={loadouts}
         className="mt-10 inline-flex h-12 items-center border-4 border-foreground bg-accent px-6 font-heading text-sm font-extrabold uppercase text-accent-foreground"
       >
         Continue shopping
       </Link>
     </div>
-  )
+  );
 }

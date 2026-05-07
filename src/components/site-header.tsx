@@ -5,9 +5,11 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
+import { useSiteRegion } from "@/lib/site-region-context";
+import { withSiteRegion } from "@/lib/site-region";
 import { cn } from "@/lib/utils";
 
-const nav = [
+const navKeys = [
   { href: "/blog", label: "Read" },
   { href: "#system", label: "Workweek" },
   { href: "#loadout", label: "Kit" },
@@ -18,12 +20,18 @@ const nav = [
 
 export function SiteHeader() {
   const { itemCount, setOpenCart } = useCart();
+  const region = useSiteRegion();
+  const nav = navKeys.map((n) =>
+    n.href.startsWith("/")
+      ? { ...n, href: withSiteRegion(region, n.href) }
+      : n,
+  );
 
   return (
     <header className="sticky top-0 z-30 border-b-4 border-foreground bg-background">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">
         <Link
-          href="/"
+          href={withSiteRegion(region, "/")}
           className="inline-flex items-center"
           aria-label="SILVARA home"
         >

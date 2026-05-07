@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { blogPosts } from "@/lib/blog";
+import type { SiteRegion } from "@/lib/site-region";
+import { withSiteRegion } from "@/lib/site-region";
 import { cn } from "@/lib/utils";
 
 function formatBlogDate(iso: string) {
@@ -12,7 +14,7 @@ function formatBlogDate(iso: string) {
   });
 }
 
-export function SystemVsSession() {
+export function SystemVsSession({ region }: { region: SiteRegion }) {
   return (
     <section
       id="system"
@@ -38,7 +40,7 @@ export function SystemVsSession() {
           {blogPosts.map((post) => (
             <Link
               key={post.slug}
-              href={`/blog/${post.slug}`}
+              href={withSiteRegion(region, `/blog/${post.slug}`)}
               className={cn(
                 "group flex flex-col border-4 border-foreground outline-offset-4 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-foreground",
                 post.theme === "inverse"
@@ -96,7 +98,7 @@ export function SystemVsSession() {
 
         <p className="mt-8 text-center md:text-left">
           <Link
-            href="/blog"
+            href={withSiteRegion(region, "/blog")}
             className="font-mono-label text-sm font-semibold uppercase tracking-wide text-foreground underline decoration-2 underline-offset-4 hover:text-accent"
           >
             Browse all reads →

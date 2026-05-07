@@ -1,6 +1,15 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 import { blogPosts } from "@/lib/blog";
+import {
+  validateSiteRegionParam,
+  withSiteRegion,
+} from "@/lib/site-region";
+
+type Props = {
+  params: Promise<{ region: string }>;
+};
 
 export const metadata = {
   title: "Field notes · SILVARA",
@@ -16,7 +25,10 @@ function formatBlogDate(iso: string) {
   });
 }
 
-export default function BlogIndexPage() {
+export default async function BlogIndexPage({ params }: Props) {
+  const region = validateSiteRegionParam((await params).region);
+  if (!region) notFound();
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:px-6 md:py-16">
       <p className="font-mono-label text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -35,7 +47,7 @@ export default function BlogIndexPage() {
             className="border-b-4 border-foreground bg-background last:border-b-0"
           >
             <Link
-              href={`/blog/${post.slug}`}
+              href={withSiteRegion(region, `/blog/${post.slug}`)}
               className="group flex flex-col gap-2 px-5 py-6 transition-colors hover:bg-muted md:px-6 md:py-8"
             >
               <span className="font-mono-label text-[0.65rem] uppercase tracking-widest text-muted-foreground">
@@ -55,7 +67,7 @@ export default function BlogIndexPage() {
         ))}
       </ul>
       <Link
-        href="/#loadouts"
+        href={withSiteRegion(region, "/#loadouts")}
         className="mt-12 inline-block font-mono-label text-xs uppercase tracking-widest text-foreground underline decoration-foreground/40 underline-offset-4 hover:text-accent"
       >
         ← Back to shop

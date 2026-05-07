@@ -1,5 +1,15 @@
-import Stripe from "stripe"
+import Stripe from "stripe";
 
-import { envServer } from "@/lib/env.server"
+import { getStripeSecretKeyForRegion } from "@/lib/env.server";
+import type { SiteRegion } from "@/lib/site-region";
 
-export const stripe = new Stripe(envServer.stripeSecretKey)
+const clients = new Map<SiteRegion, Stripe>();
+
+export function getStripeForRegion(region: SiteRegion): Stripe {
+  let client = clients.get(region);
+  if (!client) {
+    client = new Stripe(getStripeSecretKeyForRegion(region));
+    clients.set(region, client);
+  }
+  return client;
+}

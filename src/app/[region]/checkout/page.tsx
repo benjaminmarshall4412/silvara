@@ -9,12 +9,20 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { envPublic } from "@/lib/env.public";
+import { getStripePublishableKeyForRegion } from "@/lib/env.public";
 import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
-import { formatUsdFine, getProduct } from "@/lib/products";
+import { useSiteRegion } from "@/lib/site-region-context";
+import { formatMoney, getProduct } from "@/lib/products";
+import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
+import { withSiteRegion } from "@/lib/site-region";
 
 export default function CheckoutPage() {
+  const region = useSiteRegion();
+  const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
+  const home = withSiteRegion(region, "/");
+  const loadouts = withSiteRegion(region, "/#loadouts");
+
   const { lines, subtotalCents } = useCart();
   const { state: promo } = usePromoEligibility();
   const linesKey = useMemo(() => JSON.stringify(lines), [lines]);
@@ -31,16 +39,21 @@ export default function CheckoutPage() {
 
   const pct = promo?.pct ?? 0;
   const discountCents =
-    eligiblePromo && pct > 0
-      ? Math.round(subtotalCents * (pct / 100))
-      : 0;
+    eligiblePromo && pct > 0 ? Math.round(subtotalCents * (pct / 100)) : 0;
   const estimatedTotalAfterPromo = Math.max(0, subtotalCents - discountCents);
+  const publishableKey = getStripePublishableKeyForRegion(region);
+  const stripeCouponEnvName =
+    region === "us"
+      ? "STRIPE_EMAIL_PROMO_COUPON_ID_US"
+      : "STRIPE_EMAIL_PROMO_COUPON_ID_UK";
+  const publishableEnvName =
+    region === "us"
+      ? "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_US"
+      : "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_UK";
+
   const stripePromise = useMemo(
-    () =>
-      envPublic.stripePublishableKey
-        ? loadStripe(envPublic.stripePublishableKey)
-        : null,
-    [],
+    () => (publishableKey ? loadStripe(publishableKey) : null),
+    [publishableKey],
   );
 
   const loadCheckoutSession = useCallback(
@@ -52,7 +65,7 @@ export default function CheckoutPage() {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ lines }),
+          body: JSON.stringify({ lines, region }),
           signal,
         });
         const payload = await response.json();
@@ -78,7 +91,7 @@ export default function CheckoutPage() {
         );
       }
     },
-    [lines],
+    [lines, region],
   );
 
   useEffect(() => {
@@ -86,16 +99,12 @@ export default function CheckoutPage() {
   }, [linesKey]);
 
   useEffect(() => {
-    if (
-      lines.length === 0 ||
-      !envPublic.stripePublishableKey ||
-      clientSecret
-    )
+    if (lines.length === 0 || !publishableKey || clientSecret)
       return;
     const controller = new AbortController();
     void loadCheckoutSession(controller.signal);
     return () => controller.abort();
-  }, [linesKey, clientSecret, lines.length, loadCheckoutSession]);
+  }, [linesKey, clientSecret, lines.length, loadCheckoutSession, publishableKey]);
 
   if (lines.length === 0) {
     return (
@@ -107,7 +116,7 @@ export default function CheckoutPage() {
           Add a loadout or rotation from the home page.
         </p>
         <Link
-          href="/#loadouts"
+          href={loadouts}
           className="mt-8 inline-flex h-12 cursor-pointer items-center border-4 border-foreground bg-accent px-6 font-heading text-sm font-extrabold uppercase text-accent-foreground"
         >
           Back to loadouts
@@ -117,7 +126,7 @@ export default function CheckoutPage() {
   }
 
   const showCheckoutSpinner =
-    envPublic.stripePublishableKey &&
+    publishableKey &&
     !clientSecret &&
     !sessionError &&
     lines.length > 0;
@@ -135,6 +144,7 @@ export default function CheckoutPage() {
         {lines.map((line) => {
           const p = getProduct(line.id);
           if (!p) return null;
+          const unit = unitAmountCentsByBundle[line.id] ?? p.priceCents;
           return (
             <div
               key={line.id}
@@ -151,7 +161,7 @@ export default function CheckoutPage() {
                 )}
               </div>
               <p className="font-mono-label text-sm font-medium">
-                {formatUsdFine(p.priceCents * line.quantity)}
+                {formatMoney(unit * line.quantity, currency)}
               </p>
             </div>
           );
@@ -159,7 +169,7 @@ export default function CheckoutPage() {
         {discountCents > 0 ? (
           <div className="border-border flex justify-between border-t-2 border-dashed px-4 py-3">
             <span className="font-mono-label text-xs uppercase tracking-widest">Subtotal</span>
-            <span className="font-mono-label text-sm font-medium">{formatUsdFine(subtotalCents)}</span>
+            <span className="font-mono-label text-sm font-medium">{formatMoney(subtotalCents, currency)}</span>
           </div>
         ) : null}
         {discountCents > 0 ? (
@@ -168,7 +178,7 @@ export default function CheckoutPage() {
               First-order savings · −{promo?.pct ?? 0}%
             </span>
             <span className="font-mono-label text-sm font-medium text-foreground">
-              −{formatUsdFine(discountCents)}
+              −{formatMoney(discountCents, currency)}
             </span>
           </div>
         ) : null}
@@ -177,7 +187,7 @@ export default function CheckoutPage() {
             {discountCents > 0 ? "Estimated total" : "Total due"}
           </span>
           <span className="font-heading text-xl font-extrabold">
-            {formatUsdFine(discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents)}
+            {formatMoney(discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents, currency)}
           </span>
         </div>
       </div>
@@ -194,17 +204,17 @@ export default function CheckoutPage() {
       !promo.discountWillApplyAtCheckout ? (
         <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
           Estimates assume your signup offer. Stripe will apply it at payment when{" "}
-          <code className="text-foreground">STRIPE_EMAIL_PROMO_COUPON_ID</code> matches your signup coupon on the server.
+          <code className="text-foreground">{stripeCouponEnvName}</code> matches your signup coupon on the server.
         </p>
       ) : null}
 
-      {!envPublic.stripePublishableKey ? (
+      {!publishableKey ? (
         <div className="mt-10 border-4 border-foreground bg-muted px-4 py-4">
           <p className="font-mono-label text-xs font-bold uppercase tracking-wide text-foreground">
             Stripe publishable key missing
           </p>
           <p className="mt-2 text-sm leading-snug text-foreground">
-            Add <code className="text-foreground">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code> to your{" "}
+            Add <code className="text-foreground">{publishableEnvName}</code> to your{" "}
             <code className="text-foreground">.env</code> file, then restart{" "}
             <code className="text-foreground">npm run dev</code>. Client env vars load when the Next dev server starts.
           </p>
@@ -247,9 +257,9 @@ export default function CheckoutPage() {
               role="alert"
               className="border-foreground text-foreground bg-muted border-4 px-4 py-3 font-mono-label text-[0.65rem] leading-relaxed uppercase tracking-wide"
             >
-              Stripe is charging list price ({formatUsdFine(subtotalCents)}) because the automatic coupon
+              Stripe is charging list price ({formatMoney(subtotalCents, currency)}) because the automatic coupon
               was not attached. Set{" "}
-              <span className="text-foreground">STRIPE_EMAIL_PROMO_COUPON_ID</span> in{" "}
+              <span className="text-foreground">{stripeCouponEnvName}</span> in{" "}
               <span className="text-foreground">.env</span> to your Stripe coupon id (starts with{" "}
               <span className="normal-case">coupon_</span>
               ), matching the same percent as{" "}
@@ -271,14 +281,14 @@ export default function CheckoutPage() {
         <div className="mt-8 border-4 border-foreground bg-muted px-4 py-4">
           <p className="text-sm">
             Checkout session started but Stripe could not load — add{" "}
-            <code className="text-foreground">NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code>
+            <code className="text-foreground">{publishableEnvName}</code>
             and restart the dev server.
           </p>
         </div>
       )}
 
       <Link
-        href="/"
+        href={home}
         className="mt-8 inline-block font-mono-label text-xs uppercase tracking-widest underline"
       >
         ← Continue shopping

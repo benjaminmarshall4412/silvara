@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-export function SiteFooter() {
+import type { SiteRegion } from "@/lib/site-region";
+import { withSiteRegion } from "@/lib/site-region";
+
+export function SiteFooter({ region }: { region: SiteRegion }) {
   return (
     <footer className="border-t-4 border-foreground bg-surface-inverse px-4 py-12 text-background md:px-6">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-end md:justify-between">
@@ -16,13 +19,13 @@ export function SiteFooter() {
         </div>
         <div className="flex flex-col gap-4 md:items-end">
           <Link
-            href="/blog"
+            href={withSiteRegion(region, "/blog")}
             className="font-mono-label text-sm font-bold uppercase tracking-wide text-background hover:underline"
           >
             Field notes
           </Link>
           <Link
-            href="/checkout"
+            href={withSiteRegion(region, "/checkout")}
             className="font-mono-label text-sm font-bold uppercase tracking-wide text-background hover:underline"
           >
             Checkout

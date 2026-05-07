@@ -2,13 +2,14 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
 import { envPublic } from "@/lib/env.public"
-import { envServer } from "@/lib/env.server"
+import { getStripePromoCouponIdForRegion } from "@/lib/env.server"
 import {
   SILVARA_PROMO_COOKIE_NAME,
   verifyPromoEligibleToken,
 } from "@/lib/promo-cookie"
-import { stripe } from "@/lib/stripe/server"
+import { getStripeForRegion } from "@/lib/stripe/server"
 import { stripeCheckoutBranding } from "@/lib/stripe-checkout-branding"
+import { isSiteRegion } from "@/lib/site-region"
 import {
   getCheckoutMode,
   toStripeLineItems,
@@ -19,25 +20,27 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const lines = validateCheckoutLines(body?.lines)
+    const region = isSiteRegion(body?.region) ? body.region : "us"
     const mode = getCheckoutMode(lines)
-    const line_items = toStripeLineItems(lines)
+    const line_items = toStripeLineItems(lines, region)
 
     const cookieStore = await cookies()
     const promoEligible = verifyPromoEligibleToken(
       cookieStore.get(SILVARA_PROMO_COOKIE_NAME)?.value,
     )
-    const couponId = envServer.stripeEmailPromoCouponId?.trim()
+    const couponId = getStripePromoCouponIdForRegion(region)
 
     const autoDiscount =
       promoEligible && couponId ? [{ coupon: couponId }] : undefined
 
     // `payment_method_collection` is invalid for pure one-time carts (Stripe 2026+).
     // Stripe forbids `allow_promotion_codes` and `discounts` on the same session — use one or the other.
+    const siteBase = envPublic.siteUrl.replace(/\/$/, "")
     const baseParams = {
       ui_mode: "embedded_page",
       mode,
       line_items,
-      return_url: `${envPublic.siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      return_url: `${siteBase}/${region}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       billing_address_collection: "auto" as const,
       /** Match SILVARA storefront (Stripe-hosted UI; wallets like Link inherit theme colors). */
       branding_settings: stripeCheckoutBranding(),
@@ -50,13 +53,14 @@ export async function POST(request: Request) {
         ? { ...baseParams, payment_method_collection: "always" as const }
         : baseParams
 
+    const stripe = getStripeForRegion(region)
     const session = await stripe.checkout.sessions.create(sessionParams as never)
 
     if (!session.client_secret) {
       throw new Error("Stripe did not return a client secret")
     }
 
-    /** True when Checkout Session includes `discounts` (cookie + STRIPE_EMAIL_PROMO_COUPON_ID). */
+    /** True when Checkout Session includes `discounts` (cookie + STRIPE_EMAIL_PROMO_COUPON_ID_*). */
     const appliedPromoDiscount = Boolean(
       autoDiscount && autoDiscount.length > 0,
     )

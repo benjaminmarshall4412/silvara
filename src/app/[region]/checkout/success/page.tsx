@@ -1,6 +1,6 @@
-import { Suspense } from "react"
+import { Suspense } from "react";
 
-import { SuccessContent } from "./success-content"
+import { SuccessContent } from "./success-content";
 
 function SuccessFallback() {
   return (
@@ -9,7 +9,7 @@ function SuccessFallback() {
         Loading confirmation...
       </p>
     </div>
-  )
+  );
 }
 
 export default function CheckoutSuccessPage() {
@@ -17,5 +17,5 @@ export default function CheckoutSuccessPage() {
     <Suspense fallback={<SuccessFallback />}>
       <SuccessContent />
     </Suspense>
-  )
+  );
 }
