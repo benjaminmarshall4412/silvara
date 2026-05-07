@@ -22,6 +22,8 @@ if (!secretKey) {
 
 const stripe = new Stripe(secretKey)
 
+const stripeCurrency = region === "uk" ? "gbp" : "usd"
+
 /** US keys unchanged — matches existing Stripe dashboard prices from earlier syncs. */
 const LOOKUP_KEYS = {
   us: {
@@ -31,10 +33,10 @@ const LOOKUP_KEYS = {
     rotation: "silvara_rotation_usd_subscription_v1",
   },
   uk: {
-    single: "silvara_single_uk_usd_onetime_v1",
-    triple: "silvara_triple_uk_usd_onetime_v1",
-    six: "silvara_six_uk_usd_onetime_v1",
-    rotation: "silvara_rotation_uk_usd_subscription_v1",
+    single: "silvara_single_uk_gbp_onetime_v1",
+    triple: "silvara_triple_uk_gbp_onetime_v1",
+    six: "silvara_six_uk_gbp_onetime_v1",
+    rotation: "silvara_rotation_uk_gbp_subscription_v1",
   },
 }[region]
 
@@ -106,7 +108,7 @@ async function getOrCreatePrice(item, productId) {
   const params = {
     product: productId,
     unit_amount: item.amount,
-    currency: "usd",
+    currency: stripeCurrency,
     lookup_key: item.lookupKey,
     metadata: {
       bundle_id: item.bundleId,
@@ -135,7 +137,7 @@ async function run() {
 
   await fs.writeFile(outputPath, output, "utf8")
 
-  console.log(`Stripe catalog synced (${region}).`)
+  console.log(`Stripe catalog synced (${region}, currency=${stripeCurrency}).`)
   console.log("")
   console.log(envLines.join("\n"))
   console.log("")

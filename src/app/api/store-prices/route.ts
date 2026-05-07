@@ -33,10 +33,23 @@ export async function GET(request: Request) {
           { status: 500 },
         );
       }
+      if (price.currency !== currency && bundleId !== BUNDLE_IDS[0]) {
+        return NextResponse.json(
+          {
+            error: `Mixed currencies on Stripe prices for ${region} (check Price IDs in env)`,
+          },
+          { status: 500 },
+        );
+      }
       prices[bundleId] = price.unit_amount;
       currency = price.currency;
     }
 
+    if (region === "uk" && currency !== "gbp") {
+      console.warn(
+        "[store-prices] UK storefront Stripe prices are not GBP — UI will show the Stripe currency (create GBP Prices or update STRIPE_PRICE_*_UK).",
+      );
+    }
     return NextResponse.json({ prices, currency });
   } catch (error) {
     console.error("[store-prices] failed", error);
