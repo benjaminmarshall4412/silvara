@@ -21,11 +21,12 @@ const navKeys = [
 export function SiteHeader() {
   const { itemCount, setOpenCart } = useCart();
   const region = useSiteRegion();
-  const nav = navKeys.map((n) =>
-    n.href.startsWith("/")
-      ? { ...n, href: withSiteRegion(region, n.href) }
-      : n,
-  );
+  const nav = navKeys.map((n) => ({
+    ...n,
+    href: n.href.startsWith("/")
+      ? withSiteRegion(region, n.href)
+      : withSiteRegion(region, `/${n.href}`),
+  }));
 
   return (
     <header className="sticky top-0 z-30 border-b-4 border-foreground bg-background">
@@ -49,25 +50,15 @@ export function SiteHeader() {
           className="hidden max-w-xl flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-1 md:flex"
           aria-label="Primary"
         >
-          {nav.map((n) =>
-            n.href.startsWith("/") ? (
-              <Link
-                key={n.href}
-                href={n.href}
-                className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
-              >
-                {n.label}
-              </Link>
-            ) : (
-              <a
-                key={n.href}
-                href={n.href}
-                className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
-              >
-                {n.label}
-              </a>
-            ),
-          )}
+          {nav.map((n) => (
+            <Link
+              key={`${n.label}-${n.href}`}
+              href={n.href}
+              className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
+            >
+              {n.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-2">
           <Button
