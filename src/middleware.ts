@@ -51,7 +51,9 @@ export function middleware(req: NextRequest) {
     pathname === "/blog" ||
     pathname.startsWith("/blog/") ||
     pathname === "/checkout" ||
-    pathname.startsWith("/checkout/")
+    pathname.startsWith("/checkout/") ||
+    pathname === "/product" ||
+    pathname.startsWith("/product/")
   ) {
     const region = inferRegion(req);
     const url = req.nextUrl.clone();

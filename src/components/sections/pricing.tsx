@@ -1,19 +1,22 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import type { BundleId, Product } from "@/lib/products";
-import { PRODUCTS, formatMoney } from "@/lib/products";
+import {
+  PRODUCTS,
+  applyPromoToCents,
+  formatMoney,
+} from "@/lib/products";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
+import { withSiteRegion } from "@/lib/site-region";
+import { useSiteRegion } from "@/lib/site-region-context";
 import { cn } from "@/lib/utils";
 
 type OneTimeBundleProduct = Product & { id: Exclude<BundleId, "rotation"> };
-
-function applyPromoToCents(cents: number, pct: number) {
-  return Math.round((cents * (100 - pct)) / 100);
-}
 
 const bundles = PRODUCTS.filter(
   (p): p is OneTimeBundleProduct => !p.isSubscription,
@@ -130,6 +133,7 @@ function BundleUnitNote({
 }
 
 export function Pricing() {
+  const region = useSiteRegion();
   const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const { state: promoState } = usePromoEligibility();
   const showDiscount =
@@ -305,6 +309,17 @@ export function Pricing() {
                 >
                   {p.description}
                 </p>
+                <Link
+                  href={withSiteRegion(region, `/product/${p.id}`)}
+                  className={cn(
+                    "mt-4 inline-block font-mono-label text-xs font-semibold uppercase tracking-widest underline underline-offset-4",
+                    p.featured
+                      ? "text-foreground hover:text-accent"
+                      : "text-accent hover:text-foreground",
+                  )}
+                >
+                  Specs & details →
+                </Link>
                 <div className="mt-6 md:mt-8">
                   <AddToCartButton
                     id={p.id}
@@ -400,7 +415,13 @@ export function Pricing() {
                     {rotation.unitNote}
                   </p>
                 </div>
-                <div className="w-full sm:max-w-xs sm:flex-1">
+                <div className="flex w-full flex-col gap-4 sm:max-w-xs sm:flex-1">
+                  <Link
+                    href={withSiteRegion(region, `/product/${rotation.id}`)}
+                    className="font-mono-label text-xs font-semibold uppercase tracking-widest text-background underline underline-offset-4 hover:text-accent"
+                  >
+                    How rotation works →
+                  </Link>
                   <AddToCartButton
                     id={rotation.id}
                     label="Start rotation"

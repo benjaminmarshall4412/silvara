@@ -1,5 +1,21 @@
 export type BundleId = "single" | "triple" | "six" | "rotation";
 
+export const BUNDLE_IDS: readonly BundleId[] = [
+  "single",
+  "triple",
+  "six",
+  "rotation",
+] as const;
+
+export function isBundleId(value: string): value is BundleId {
+  return (BUNDLE_IDS as readonly string[]).includes(value);
+}
+
+/** First-order promo estimate (matches pricing / checkout UI). */
+export function applyPromoToCents(cents: number, pct: number): number {
+  return Math.round((cents * (100 - pct)) / 100);
+}
+
 export type Product = {
   id: BundleId;
   name: string;
