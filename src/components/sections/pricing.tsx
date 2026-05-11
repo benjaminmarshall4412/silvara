@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { AddToCartButton } from "@/components/add-to-cart-button";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import type { BundleId, Product } from "@/lib/products";
 import {
@@ -235,14 +234,19 @@ export function Pricing() {
           {bundles.map((p) => {
             const displayCents = unitAmountCentsByBundle[p.id];
             return (
-            <article
+            <Link
               key={p.id}
+              href={withSiteRegion(region, `/product/${p.id}`)}
+              aria-label={`SILVARA ${p.name} — view product details and add to cart`}
               className={cn(
-                "flex min-h-0 min-w-0 flex-col overflow-hidden border-4 border-foreground bg-background",
+                "group flex min-h-0 min-w-0 flex-col overflow-hidden border-4 border-foreground bg-background text-left no-underline outline-none transition-[transform,box-shadow] focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                !p.featured &&
+                  "hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0] hover:shadow-foreground/15",
                 p.featured &&
-                  "bg-surface-inverse text-background md:relative md:z-10 md:-translate-y-1 md:border-b-[10px] md:border-background md:shadow-[6px_6px_0_0] md:shadow-surface-inverse/35",
+                  "bg-surface-inverse text-background md:relative md:z-10 md:-translate-y-1 md:border-b-[10px] md:border-background md:shadow-[6px_6px_0_0] md:shadow-surface-inverse/35 md:hover:-translate-y-1.5 md:hover:shadow-[8px_8px_0_0] md:hover:shadow-black/25",
               )}
             >
+            <article className="flex min-h-0 min-w-0 flex-1 flex-col">
               <div
                 className={cn(
                   "relative aspect-[8/5] w-full min-h-[180px] border-b-4 border-foreground sm:min-h-[200px] md:min-h-[220px]",
@@ -309,39 +313,27 @@ export function Pricing() {
                 >
                   {p.description}
                 </p>
-                <Link
-                  href={withSiteRegion(region, `/product/${p.id}`)}
+                <p
                   className={cn(
-                    "mt-4 inline-block font-mono-label text-xs font-semibold uppercase tracking-widest underline underline-offset-4",
-                    p.featured
-                      ? "text-foreground hover:text-accent"
-                      : "text-accent hover:text-foreground",
+                    "mt-auto pt-6 font-mono-label text-[0.6rem] uppercase tracking-[0.22em] md:pt-8",
+                    p.featured ? "text-background/50" : "text-muted-foreground",
                   )}
                 >
-                  Specs & details →
-                </Link>
-                <div className="mt-6 md:mt-8">
-                  <AddToCartButton
-                    id={p.id}
-                    label="Add to cart"
-                    variant={p.featured ? "primary" : "outline"}
-                    className={
-                      p.featured
-                        ? "!h-14 !border-transparent !bg-accent !text-base !font-extrabold !text-accent-foreground md:!h-16 md:!text-lg"
-                        : "!h-14 !text-base md:!h-16 md:!text-lg"
-                    }
-                  />
-                </div>
+                  View product →
+                </p>
               </div>
             </article>
+            </Link>
             );
           })}
         </div>
 
-        {/* Fresh rotation */}
-        <div
+        {/* Fresh rotation — full band links to product page (listing-style, no cart on grid) */}
+        <Link
           id="rotation"
-          className="relative mt-16 scroll-mt-24 overflow-hidden border-4 border-foreground bg-surface-inverse text-background md:mt-20"
+          href={withSiteRegion(region, `/product/${rotation.id}`)}
+          aria-label="SILVARA fresh rotation — view product details and subscribe"
+          className="group relative mt-16 block scroll-mt-24 overflow-hidden border-4 border-foreground bg-surface-inverse text-left text-background no-underline outline-none transition-[transform,box-shadow] focus-visible:ring-2 focus-visible:ring-background focus-visible:ring-offset-2 focus-visible:ring-offset-surface-inverse hover:shadow-[6px_6px_0_0] hover:shadow-black/30 md:mt-20 md:hover:-translate-y-0.5"
         >
           <div className="grid lg:grid-cols-[minmax(0,42%)_1fr]">
             <div className="relative min-h-48 w-full border-b-4 border-background sm:min-h-56 lg:min-h-[300px] lg:h-full lg:border-r-4 lg:border-b-0">
@@ -415,23 +407,18 @@ export function Pricing() {
                     {rotation.unitNote}
                   </p>
                 </div>
-                <div className="flex w-full flex-col gap-4 sm:max-w-xs sm:flex-1">
-                  <Link
-                    href={withSiteRegion(region, `/product/${rotation.id}`)}
-                    className="font-mono-label text-xs font-semibold uppercase tracking-widest text-background underline underline-offset-4 hover:text-accent"
-                  >
-                    How rotation works →
-                  </Link>
-                  <AddToCartButton
-                    id={rotation.id}
-                    label="Start rotation"
-                    className="!h-14 !bg-accent !text-base !text-accent-foreground md:!h-16 md:!text-lg"
-                  />
+                <div className="flex w-full flex-col gap-3 sm:max-w-xs sm:flex-1">
+                  <span className="inline-flex h-14 w-full cursor-pointer items-center justify-center border-2 border-background bg-accent px-4 font-heading text-base font-extrabold uppercase tracking-wide text-accent-foreground transition-opacity group-hover:opacity-90 md:h-16 md:text-lg">
+                    View rotation
+                  </span>
+                  <p className="font-mono-label text-[0.6rem] uppercase tracking-[0.2em] text-background/55">
+                    Full details & subscribe on next screen →
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </section>
   );
