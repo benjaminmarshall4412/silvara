@@ -59,29 +59,23 @@ function BundlePriceRow({
     ? "border-background/45 text-background"
     : "border-foreground text-foreground";
 
+  const priceClass = cn(
+    "font-heading font-extrabold tabular-nums tracking-tight",
+    "text-[clamp(1.35rem,2.8vw+0.4rem,2.75rem)] md:text-[clamp(1.5rem,2.2vw+0.75rem,3.25rem)]",
+    "min-w-0 max-w-full shrink leading-none",
+  );
+
   return (
-    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+    <div className="flex w-full min-w-0 max-w-full flex-wrap items-baseline gap-x-1.5 gap-y-2">
       {showDiscount ? (
         <>
-          <span
-            className={cn(
-              "font-heading text-4xl font-extrabold tabular-nums line-through decoration-2 md:text-5xl",
-              strike,
-            )}
-          >
+          <span className={cn(priceClass, "line-through decoration-2", strike)}>
             {formatMoney(priceCents, currency)}
           </span>
+          <span className={cn(priceClass, main)}>{formatMoney(after, currency)}</span>
           <span
             className={cn(
-              "font-heading text-4xl font-extrabold tabular-nums md:text-5xl",
-              main,
-            )}
-          >
-            {formatMoney(after, currency)}
-          </span>
-          <span
-            className={cn(
-              "font-mono-label rounded-sm border px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide",
+              "font-mono-label shrink-0 rounded-sm border px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide",
               chip,
             )}
           >
@@ -89,14 +83,7 @@ function BundlePriceRow({
           </span>
         </>
       ) : (
-        <p
-          className={cn(
-            "font-heading text-4xl font-extrabold tabular-nums md:text-5xl",
-            main,
-          )}
-        >
-          {formatMoney(priceCents, currency)}
-        </p>
+        <p className={cn(priceClass, main)}>{formatMoney(priceCents, currency)}</p>
       )}
     </div>
   );
@@ -247,7 +234,7 @@ export function Pricing() {
             <article
               key={p.id}
               className={cn(
-                "flex min-h-0 flex-col border-4 border-foreground bg-background",
+                "flex min-h-0 min-w-0 flex-col overflow-hidden border-4 border-foreground bg-background",
                 p.featured &&
                   "bg-surface-inverse text-background md:relative md:z-10 md:-translate-y-1 md:border-b-[10px] md:border-background md:shadow-[6px_6px_0_0] md:shadow-surface-inverse/35",
               )}
@@ -289,7 +276,7 @@ export function Pricing() {
               </div>
               <div
                 className={cn(
-                  "flex flex-1 flex-col p-5 md:p-6",
+                  "flex min-w-0 flex-1 flex-col p-5 md:p-6",
                   p.featured && "pb-6 md:pb-8",
                 )}
               >
@@ -387,25 +374,25 @@ export function Pricing() {
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-col gap-5 border-t-2 border-background/25 pt-6 sm:flex-row sm:items-end sm:justify-between">
-                <div>
+              <div className="mt-8 flex min-w-0 flex-col gap-5 border-t-2 border-background/25 pt-6 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0 flex-1">
                   <p className="font-mono-label text-xs font-semibold uppercase tracking-wide text-background/60">
                     Per shipment
                   </p>
                   {showDiscount ? (
-                    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <span className="font-heading text-3xl font-extrabold tabular-nums line-through decoration-2 text-background/45 md:text-4xl">
+                    <div className="mt-0.5 flex min-w-0 max-w-full flex-wrap items-baseline gap-x-1.5 gap-y-2">
+                      <span className="font-heading text-[clamp(1.35rem,2.5vw+0.35rem,2.5rem)] font-extrabold tabular-nums leading-none tracking-tight line-through decoration-2 text-background/45 md:text-[clamp(1.5rem,2vw+0.5rem,2.75rem)]">
                         {formatMoney(rotationCents, currency)}
                       </span>
-                      <span className="font-heading text-3xl font-extrabold tabular-nums text-background md:text-4xl">
+                      <span className="font-heading text-[clamp(1.35rem,2.5vw+0.35rem,2.5rem)] font-extrabold tabular-nums leading-none tracking-tight text-background md:text-[clamp(1.5rem,2vw+0.5rem,2.75rem)]">
                         {formatMoney(applyPromoToCents(rotationCents, pct), currency)}
                       </span>
-                      <span className="font-mono-label rounded-sm border border-background/45 px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-background">
+                      <span className="font-mono-label shrink-0 rounded-sm border border-background/45 px-1.5 py-0.5 text-[0.65rem] font-bold uppercase tracking-wide text-background">
                         −{pct}%
                       </span>
                     </div>
                   ) : (
-                    <p className="font-heading mt-0.5 text-3xl font-extrabold md:text-4xl text-background">
+                    <p className="font-heading mt-0.5 text-[clamp(1.35rem,2.5vw+0.35rem,2.5rem)] font-extrabold tabular-nums leading-none tracking-tight text-background md:text-[clamp(1.5rem,2vw+0.5rem,2.75rem)]">
                       {formatMoney(rotationCents, currency)}
                     </p>
                   )}
