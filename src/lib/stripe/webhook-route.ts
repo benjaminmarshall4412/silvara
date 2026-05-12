@@ -36,7 +36,7 @@ export async function stripeWebhookPost(
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  logStripeWebhookEvent(event);
+  await logStripeWebhookEvent(event);
 
   return NextResponse.json({ received: true });
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getPostHogClient } from "@/lib/posthog-server";
 import {
   SILVARA_PROMO_COOKIE_NAME,
   mintPromoEligibleToken,
@@ -42,6 +43,15 @@ export async function POST(req: Request) {
       // Optional integration — still acknowledge signup for shopper UX.
     }
   }
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: raw,
+    event: "promo_signup_completed",
+    properties: { email: raw, source: "silvara-email-promo" },
+  });
+  posthog.identify({ distinctId: raw, properties: { email: raw } });
+  await posthog.shutdown();
 
   const token = mintPromoEligibleToken();
   const res = NextResponse.json({ ok: true });

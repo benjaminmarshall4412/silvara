@@ -1,6 +1,7 @@
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { NextResponse } from "next/server"
 
+import { getPostHogClient } from "@/lib/posthog-server"
 import { envPublic } from "@/lib/env.public"
 import { getStripePromoCouponIdForRegion } from "@/lib/env.server"
 import {
@@ -73,6 +74,22 @@ export async function POST(request: Request) {
     const appliedPromoDiscount = Boolean(
       autoDiscount && autoDiscount.length > 0,
     )
+
+    const reqHeaders = await headers()
+    const distinctId = reqHeaders.get("x-posthog-distinct-id") ?? session.id
+    const posthog = getPostHogClient()
+    posthog.capture({
+      distinctId,
+      event: "checkout_session_created",
+      properties: {
+        session_id: session.id,
+        mode,
+        region,
+        line_count: lines.length,
+        applied_promo_discount: appliedPromoDiscount,
+      },
+    })
+    await posthog.shutdown()
 
     return NextResponse.json({
       clientSecret: session.client_secret,

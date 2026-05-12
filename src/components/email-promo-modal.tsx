@@ -1,11 +1,14 @@
 "use client";
 
+import posthog from "posthog-js";
+
 import { envPublic } from "@/lib/env.public";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import {
   useCallback,
   useEffect,
   useId,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -34,15 +37,26 @@ export function EmailPromoModal() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const promoShownLogged = useRef(false);
 
-  const dismiss = useCallback(() => {
+  useEffect(() => {
+    if (!visible || pct <= 0) return;
+    if (promoShownLogged.current) return;
+    promoShownLogged.current = true;
+    posthog.capture("promo_modal_shown", { promo_pct: pct });
+  }, [visible, pct]);
+
+  const dismiss = useCallback((hadSubmitted?: boolean) => {
+    if (!hadSubmitted) {
+      posthog.capture("promo_modal_dismissed", { promo_pct: pct });
+    }
     setVisible(false);
     try {
       localStorage.setItem(STORAGE_DISMISSED, "1");
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [pct]);
 
   useEffect(() => {
     if (!isBrowser || pct <= 0) return;
@@ -95,13 +109,15 @@ export function EmailPromoModal() {
           return;
         }
         setStatus("done");
+        posthog.capture("promo_email_submitted", { promo_pct: pct });
+        posthog.identify(email.trim(), { email: email.trim() });
         void refetchPromo();
       } catch {
         setErrorMsg("Could not reach the server.");
         setStatus("error");
       }
     },
-    [email, refetchPromo],
+    [email, pct, refetchPromo],
   );
 
   if (!isBrowser || pct <= 0 || !visible) return null;
@@ -116,7 +132,7 @@ export function EmailPromoModal() {
         type="button"
         aria-label="Close promotion"
         className="bg-foreground/40 absolute inset-0 block w-full cursor-default border-none"
-        onClick={dismiss}
+        onClick={() => dismiss()}
       />
       <div className="pointer-events-none fixed inset-0 flex items-center justify-center p-4 sm:p-6">
         <div
@@ -142,7 +158,7 @@ export function EmailPromoModal() {
             </div>
             <button
               type="button"
-              onClick={dismiss}
+              onClick={() => dismiss()}
               className="border-border text-muted-foreground hover:bg-muted hover:text-foreground flex h-10 min-w-10 shrink-0 items-center justify-center border-2 bg-transparent font-mono text-xl leading-none"
               aria-label="Dismiss offer"
             >
@@ -157,7 +173,7 @@ export function EmailPromoModal() {
               </p>
               <button
                 type="button"
-                onClick={dismiss}
+                onClick={() => dismiss(true)}
                 className="bg-primary text-primary-foreground border-border hover:opacity-90 w-full border-2 px-4 py-3 font-heading text-sm font-extrabold uppercase tracking-wide"
               >
                 Got it

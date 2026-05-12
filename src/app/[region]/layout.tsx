@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { CartDrawer } from "@/components/cart-drawer";
 import { EmailPromoModal } from "@/components/email-promo-modal";
+import { PosthogPageEngagement } from "@/components/posthog-page-engagement";
 import { SiteHeader } from "@/components/site-header";
 import { CartProvider } from "@/lib/cart-context";
 import { PromoEligibilityProvider } from "@/lib/promo-eligibility-context";
@@ -24,6 +25,7 @@ export default async function RegionLayout({ children, params }: Props) {
       <SiteRegionProvider region={region}>
         <StripeCatalogPricesProvider>
           <CartProvider>
+            <PosthogPageEngagement />
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <CartDrawer />

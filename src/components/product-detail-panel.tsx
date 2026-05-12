@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import posthog from "posthog-js";
 import Link from "next/link";
 
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -20,6 +22,17 @@ export function ProductDetailPanel({ bundleId }: { bundleId: BundleId }) {
   const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const { state: promo } = usePromoEligibility();
   const p = getProduct(bundleId);
+
+  useEffect(() => {
+    if (!p) return;
+    posthog.capture("product_viewed", {
+      bundle_id: bundleId,
+      product_name: p.name,
+      is_subscription: p.isSubscription,
+      region,
+    });
+  }, [bundleId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!p) return null;
 
   const cents = unitAmountCentsByBundle[bundleId] ?? p.priceCents;

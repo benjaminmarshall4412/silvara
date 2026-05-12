@@ -1,25 +1,30 @@
-import { PlaceholderImage } from "@/components/placeholder-image";
+import Image from "next/image";
 
 const cases = [
   {
     title: "Warehouse & picks",
-    label: "FLOOR",
     line: "Concrete, pallets, 10k steps before lunch — heat and friction all day.",
+    imageSrc: "/warehouse.png",
+    imageAlt:
+      "Warehouse floor and pallets — long shifts on concrete in work boots",
   },
   {
     title: "Trades & job site",
-    label: "SITE",
     line: "Boots, ladders, dust — toe box packed; thin crew keeps stack low.",
+    imageSrc: "/tradejob.png",
+    imageAlt: "Job site and trades — boots, ladders, and dust on the shift",
   },
   {
     title: "Retail & kitchens",
-    label: "SHIFT",
     line: "Hard floors, non-stop — same socks tomorrow if you do not rotate clean.",
+    imageSrc: "/retailkitchen.png",
+    imageAlt: "Retail or kitchen shift on hard floors — non-stop on your feet",
   },
   {
     title: "Locker & gear bag",
-    label: "BAG",
     line: "Warm bag, no airflow — less bacterial load left in the fabric.",
+    imageSrc: "/lockerbag.png",
+    imageAlt: "Locker and gear bag — socks packed after a warm shift",
   },
 ] as const;
 
@@ -45,13 +50,15 @@ export function Scenarios() {
               key={c.title}
               className="flex flex-col border-4 border-background"
             >
-              <PlaceholderImage
-                width={400}
-                height={220}
-                label={c.label}
-                sizes="(max-width: 640px) 100vw, 25vw"
-                className="aspect-[20/11] w-full !border-background border-b-4 border-l-0 border-r-0 border-t-0"
-              />
+              <div className="relative aspect-[20/11] w-full overflow-hidden border-b-4 border-l-0 border-r-0 border-t-0 border-background">
+                <Image
+                  src={c.imageSrc}
+                  alt={c.imageAlt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 25vw"
+                  className="object-cover"
+                />
+              </div>
               <div className="flex flex-1 flex-col p-4">
                 <h3 className="font-heading text-base font-extrabold uppercase text-background">
                   {c.title}

@@ -17,8 +17,8 @@ export function FailureMode() {
         <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
           <div className="relative aspect-square w-full max-w-md overflow-hidden border-4 border-foreground lg:col-span-5 lg:max-w-none">
             <Image
-              src="/closeup.jpg"
-              alt="Macro of damp heather grey crew sock knit — wet fiber after a long shift, bacterial odor context"
+              src="/odorbacteria.png"
+              alt="Odor and bacteria on the fiber — wet is not the same as smell; microbes drive odor"
               fill
               sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover"

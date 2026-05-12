@@ -21,7 +21,7 @@ export function LoadoutChecklist() {
           <div className="lg:col-span-5">
             <div className="relative aspect-[5/6] w-full max-h-[420px] overflow-hidden border-4 border-foreground lg:max-h-none">
               <Image
-                src="/serious.jpg"
+                src="/seriousworkkit.png"
                 alt="Work kit flat lay — boots and essentials with SILVARA"
                 fill
                 sizes="(max-width: 1024px) 100vw, 42vw"

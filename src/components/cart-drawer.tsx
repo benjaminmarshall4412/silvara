@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import posthog from "posthog-js";
+import { useEffect, useRef } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
@@ -25,6 +27,22 @@ export function CartDrawer() {
     remove,
   } = useCart();
   const { state: promo } = usePromoEligibility();
+
+  const cartViewLoggedForOpen = useRef(false);
+  useEffect(() => {
+    if (!openCart) {
+      cartViewLoggedForOpen.current = false;
+      return;
+    }
+    if (cartViewLoggedForOpen.current) return;
+    cartViewLoggedForOpen.current = true;
+    posthog.capture("cart_viewed", {
+      line_count: lines.length,
+      subtotal_cents: subtotalCents,
+      currency,
+      region,
+    });
+  }, [openCart, lines.length, subtotalCents, currency, region]);
 
   const eligiblePromo =
     !!(promo && promo.pct > 0 && promo.claimedOnThisDevice);
@@ -104,7 +122,14 @@ export function CartDrawer() {
                       variant="outline"
                       size="icon-sm"
                       className="rounded-none border-2 border-foreground"
-                      onClick={() => setQty(line.id, line.quantity - 1)}
+                      onClick={() => {
+                        setQty(line.id, line.quantity - 1);
+                        posthog.capture("cart_item_quantity_changed", {
+                          bundle_id: line.id,
+                          new_quantity: line.quantity - 1,
+                          direction: "decrease",
+                        });
+                      }}
                       aria-label="Decrease quantity"
                     >
                       −
@@ -117,7 +142,14 @@ export function CartDrawer() {
                       variant="outline"
                       size="icon-sm"
                       className="rounded-none border-2 border-foreground"
-                      onClick={() => setQty(line.id, line.quantity + 1)}
+                      onClick={() => {
+                        setQty(line.id, line.quantity + 1);
+                        posthog.capture("cart_item_quantity_changed", {
+                          bundle_id: line.id,
+                          new_quantity: line.quantity + 1,
+                          direction: "increase",
+                        });
+                      }}
                       aria-label="Increase quantity"
                     >
                       +
@@ -127,7 +159,13 @@ export function CartDrawer() {
                       variant="ghost"
                       size="sm"
                       className="ml-auto rounded-none text-xs uppercase text-destructive"
-                      onClick={() => remove(line.id)}
+                      onClick={() => {
+                        remove(line.id);
+                        posthog.capture("cart_item_removed", {
+                          bundle_id: line.id,
+                          quantity: line.quantity,
+                        });
+                      }}
                     >
                       Remove
                     </Button>
@@ -192,7 +230,15 @@ export function CartDrawer() {
           ) : (
             <Link
               href={checkoutHref}
-              onClick={() => setOpenCart(false)}
+              onClick={() => {
+                setOpenCart(false);
+                posthog.capture("checkout_started", {
+                  line_count: lines.length,
+                  subtotal_cents: subtotalCents,
+                  currency,
+                  has_promo: eligiblePromo,
+                });
+              }}
               className={cn(
                 buttonVariants({ variant: "default", size: "lg" }),
                 "mt-4 flex h-14 w-full cursor-pointer items-center justify-center rounded-none border-2 border-transparent bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90",

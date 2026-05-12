@@ -1,5 +1,6 @@
 "use client";
 
+import posthog from "posthog-js";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -46,6 +47,15 @@ export function SuccessContent() {
 
         if (!canceled) {
           setSessionStatus(payload);
+          posthog.capture("order_confirmed", {
+            session_id: sessionIdParam,
+            payment_status: payload.paymentStatus,
+            checkout_status: payload.status,
+            region,
+          });
+          if (payload.customerEmail) {
+            posthog.identify(payload.customerEmail, { email: payload.customerEmail });
+          }
         }
       } catch (error) {
         if (!canceled) {
@@ -61,7 +71,7 @@ export function SuccessContent() {
     return () => {
       canceled = true;
     };
-  }, [sessionId]);
+  }, [sessionId, region]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 md:py-20">

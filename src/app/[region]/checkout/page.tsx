@@ -5,6 +5,7 @@ import {
   EmbeddedCheckoutProvider,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import posthog from "posthog-js";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -64,7 +65,10 @@ export default function CheckoutPage() {
         const response = await fetch("/api/stripe/create-intent", {
           method: "POST",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-posthog-distinct-id": posthog.get_distinct_id(),
+          },
           body: JSON.stringify({ lines, region }),
           signal,
         });
@@ -86,9 +90,10 @@ export default function CheckoutPage() {
         setClientSecret(payload.clientSecret);
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return;
-        setSessionError(
-          error instanceof Error ? error.message : "Unable to start checkout",
-        );
+        const message = error instanceof Error ? error.message : "Unable to start checkout";
+        posthog.capture("checkout_session_error", { error_message: message, region });
+        posthog.captureException(error);
+        setSessionError(message);
       }
     },
     [lines, region],

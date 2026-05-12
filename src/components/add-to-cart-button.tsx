@@ -1,5 +1,7 @@
 "use client";
 
+import posthog from "posthog-js";
+
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
 import type { BundleId } from "@/lib/products";
@@ -33,7 +35,10 @@ export function AddToCartButton({
           "border-foreground bg-background hover:bg-muted",
         className,
       )}
-      onClick={() => add(id, 1)}
+      onClick={() => {
+        add(id, 1);
+        posthog.capture("product_added_to_cart", { bundle_id: id, label });
+      }}
     >
       {label}
     </Button>
