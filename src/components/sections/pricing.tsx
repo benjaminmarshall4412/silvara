@@ -23,22 +23,22 @@ const bundles = PRODUCTS.filter(
 const rotation = PRODUCTS.find((p) => p.isSubscription)!;
 
 const bundleProductImage: Record<Exclude<BundleId, "rotation">, string> = {
-  single: "/1pair.jpg",
-  triple: "/3pair.jpg",
-  six: "/6pair.jpg",
+  single: "/frontpage-single.png",
+  triple: "/frontpage-triple.png",
+  six: "/frontpage-six.png",
 };
 
 const chips = [
-  "Thin crew · boot-friendly",
-  "Silver yarn",
-  "Bacterial odor",
-  "Long shifts",
+  "Thin crew · silver yarn",
+  "Boot shifts",
+  "Bacteria on fiber",
+  "1 · 3 · 6 · sub",
 ];
 
 /** Bump this when you replace the hero image in `public/` so browsers/CDNs fetch the new file. */
-const HERO_IMAGE_VERSION = 3;
+const HERO_IMAGE_VERSION = 5;
 
-const heroSrc = `/169_dimension__GPT_Image_2_23872.jpg?v=${HERO_IMAGE_VERSION}`;
+const heroSrc = `/header.png?v=${HERO_IMAGE_VERSION}`;
 
 function BundlePriceRow({
   priceCents,
@@ -146,17 +146,17 @@ export function Pricing() {
       className="scroll-mt-24 border-b-4 border-foreground bg-background px-0 pb-10 pt-0 md:pb-14"
       aria-labelledby="hero-heading"
     >
-      {/* Full-bleed hero — public/169_dimension__GPT_Image_2_23872.jpg */}
+      {/* Full-bleed hero — public/header.png */}
       <div className="relative w-full border-b-4 border-foreground">
         <div className="relative min-h-[min(72vh,820px)] w-full md:min-h-[min(78vh,900px)]">
           <Image
             src={heroSrc}
-            alt="On-the-job wear in SILVARA — silver-infused thin crew socks for long shifts and work boots"
+            alt="Worker in boots — SILVARA silver-infused thin crew work socks for long shifts"
             fill
             priority
             sizes="100vw"
             unoptimized
-            className="scale-x-[-1] border-0 object-cover object-[center_25%] md:object-center"
+            className="border-0 object-cover object-center"
           />
           <div
             className="pointer-events-none absolute inset-0 bg-black/45 md:bg-black/40"
@@ -164,19 +164,19 @@ export function Pricing() {
           />
           <div className="absolute inset-0 flex flex-col justify-end px-5 pb-12 pt-28 md:px-10 md:pb-16 md:pt-32 lg:px-14 lg:pb-20">
             <p className="font-mono-label text-on-hero-eyebrow text-xs font-bold uppercase tracking-[0.2em] md:text-sm">
-              Built for the floor
+              Thin silver crew socks
             </p>
             <h1
               id="hero-heading"
-              className="font-heading mt-4 max-w-[92vw] text-4xl font-extrabold uppercase leading-[0.92] tracking-tight sm:max-w-4xl sm:text-5xl md:text-6xl lg:text-7xl"
+              className="font-heading mt-4 w-full max-w-[min(100%,36rem)] text-pretty text-3xl font-extrabold uppercase leading-[0.98] tracking-tight sm:max-w-[42rem] sm:text-5xl md:text-6xl lg:max-w-[48rem] lg:text-7xl"
             >
-              <span className="block text-background">Odor is bacteria.</span>
-              <span className="text-on-hero-accent mt-[0.08em] block">
-                Cut the signal.
+              <span className="block text-background">Thin crew for work boots.</span>
+              <span className="text-on-hero-accent mt-[0.12em] block">
+                Silver yarn—not&nbsp;perfume.
               </span>
             </h1>
-            <p className="mt-5 max-w-lg text-base font-medium leading-snug text-background/88 md:max-w-xl md:text-lg">
-              Thin crew sock · silver-infused yarn · for people who live in work boots and safety shoes.
+            <p className="mt-5 max-w-md text-base font-medium leading-snug text-background/88 md:text-lg">
+              Black or white marl · 1, 3, 6 pairs, or 3/month subscribed.
             </p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export function Pricing() {
               href="#system"
               className="font-mono-label text-sm font-semibold uppercase tracking-wide text-accent underline decoration-2 underline-offset-4 hover:text-foreground"
             >
-              Junk drawer vs workweek system →
+              Sock story →
             </a>
             <a
               href="#rotation"
@@ -215,16 +215,16 @@ export function Pricing() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="text-center lg:text-left">
               <p className="font-mono-label text-sm font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-                Shop · shift math
+                Shop
               </p>
               <h2
                 id="pricing-heading"
                 className="font-heading mt-2 text-3xl font-extrabold uppercase leading-tight tracking-tight text-foreground md:text-4xl lg:text-5xl"
               >
-                Add to cart
+                Packs & subscription
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-base leading-relaxed text-foreground/85 md:mx-0 md:text-lg">
-                1 = try in your boot · 3 = workweek rotation · 6 = overtime / best per shift.
+                Same thin crew sock—1, 3, or 6 pairs—or 3 pairs/month subscribed.
               </p>
             </div>
           </div>
@@ -249,7 +249,7 @@ export function Pricing() {
             <article className="flex min-h-0 min-w-0 flex-1 flex-col">
               <div
                 className={cn(
-                  "relative aspect-[8/5] w-full min-h-[180px] border-b-4 border-foreground sm:min-h-[200px] md:min-h-[220px]",
+                  "relative aspect-square w-full overflow-hidden border-b-4 border-foreground",
                   p.featured && "border-background",
                 )}
               >
@@ -332,14 +332,14 @@ export function Pricing() {
         <Link
           id="rotation"
           href={withSiteRegion(region, `/product/${rotation.id}`)}
-          aria-label="SILVARA fresh rotation — view product details and subscribe"
+          aria-label="SILVARA — 3 pairs monthly, subscribe"
           className="group relative mt-16 block scroll-mt-24 overflow-hidden border-4 border-foreground bg-surface-inverse text-left text-background no-underline outline-none transition-[transform,box-shadow] focus-visible:ring-2 focus-visible:ring-background focus-visible:ring-offset-2 focus-visible:ring-offset-surface-inverse hover:shadow-[6px_6px_0_0] hover:shadow-black/30 md:mt-20 md:hover:-translate-y-0.5"
         >
           <div className="grid lg:grid-cols-[minmax(0,42%)_1fr]">
             <div className="relative min-h-48 w-full border-b-4 border-background sm:min-h-56 lg:min-h-[300px] lg:h-full lg:border-r-4 lg:border-b-0">
               <Image
                 src="/shipping.jpg"
-                alt={`SILVARA ${rotation.shortName} — scheduled resupply for workweek rotation`}
+                alt="SILVARA — 3-pair monthly sock shipment"
                 fill
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
@@ -357,13 +357,12 @@ export function Pricing() {
                 rotation
               </h3>
               <p className="mt-3 max-w-md text-sm leading-snug text-background/90 md:text-base">
-                Fresh pairs on the calendar so you are not stuck in yesterday&apos;s
-                socks halfway through the week. Cancel or pause before the next ship.
+                Same socks as the packs—3 pairs, monthly. Pause in Stripe before the next bill.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2 md:gap-3">
                 {[
-                  { k: "Cadence", v: "Every 2–3 mo" },
+                  { k: "Cadence", v: "Monthly" },
                   { k: "Ships", v: "3 pairs" },
                   { k: "Terms", v: "Pause anytime" },
                 ].map((item) => (

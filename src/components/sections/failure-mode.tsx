@@ -1,9 +1,8 @@
 import Image from "next/image";
 
 const bullets = [
-  "Sweat is mostly water — smell is microbes.",
-  "Long shifts: wet fiber + heat = growth in the boot.",
-  "We target bacteria on the sock — not perfume.",
+  "Wet fiber feeds bacteria—that is the smell, not sweat alone.",
+  "We target bacteria on the sock—not perfume.",
 ];
 
 export function FailureMode() {
@@ -30,11 +29,9 @@ export function FailureMode() {
             </p>
             <h2
               id="failure-heading"
-              className="font-heading mt-2 text-3xl font-extrabold uppercase leading-tight tracking-tight md:text-4xl lg:text-5xl"
+              className="font-heading mt-2 max-w-xl text-pretty text-3xl font-extrabold uppercase leading-[1.05] tracking-tight md:text-4xl lg:max-w-2xl lg:text-5xl"
             >
-              Wet ≠ smell.
-              <br />
-              Bacteria = smell.
+              Wet isn&apos;t smell — bacteria is.
             </h2>
             <ul className="mt-6 space-y-3 text-base leading-snug text-foreground md:text-lg">
               {bullets.map((b) => (

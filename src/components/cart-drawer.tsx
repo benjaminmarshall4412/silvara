@@ -10,6 +10,7 @@ import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import { formatMoney, getProduct } from "@/lib/products";
+import { cartLineKey, SOCK_SIZE_SHORT } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
@@ -95,16 +96,20 @@ export function CartDrawer() {
             lines.map((line) => {
               const p = getProduct(line.id);
               if (!p) return null;
+              const lk = cartLineKey(line);
               const unit = unitAmountCentsByBundle[line.id] ?? p.priceCents;
               return (
                 <div
-                  key={line.id}
+                  key={lk}
                   className="border-b-2 border-foreground px-5 py-4"
                 >
                   <div className="flex justify-between gap-3">
                     <div>
                       <p className="font-heading text-lg font-extrabold uppercase tracking-tight">
                         {p.name}
+                      </p>
+                      <p className="mt-1 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
+                        Size {SOCK_SIZE_SHORT[line.sockSize]} · crew
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {p.isSubscription
@@ -123,9 +128,10 @@ export function CartDrawer() {
                       size="icon-sm"
                       className="rounded-none border-2 border-foreground"
                       onClick={() => {
-                        setQty(line.id, line.quantity - 1);
+                        setQty(lk, line.quantity - 1);
                         posthog.capture("cart_item_quantity_changed", {
                           bundle_id: line.id,
+                          sock_size: line.sockSize,
                           new_quantity: line.quantity - 1,
                           direction: "decrease",
                         });
@@ -143,9 +149,10 @@ export function CartDrawer() {
                       size="icon-sm"
                       className="rounded-none border-2 border-foreground"
                       onClick={() => {
-                        setQty(line.id, line.quantity + 1);
+                        setQty(lk, line.quantity + 1);
                         posthog.capture("cart_item_quantity_changed", {
                           bundle_id: line.id,
+                          sock_size: line.sockSize,
                           new_quantity: line.quantity + 1,
                           direction: "increase",
                         });
@@ -160,9 +167,10 @@ export function CartDrawer() {
                       size="sm"
                       className="ml-auto rounded-none text-xs uppercase text-destructive"
                       onClick={() => {
-                        remove(line.id);
+                        remove(lk);
                         posthog.capture("cart_item_removed", {
                           bundle_id: line.id,
+                          sock_size: line.sockSize,
                           quantity: line.quantity,
                         });
                       }}

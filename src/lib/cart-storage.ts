@@ -1,5 +1,9 @@
 import type { CartLine } from "@/lib/cart-types";
 import type { BundleId } from "@/lib/products";
+import {
+  DEFAULT_SOCK_SIZE,
+  isSockSize,
+} from "@/lib/sock-sizes";
 
 /** localStorage payload */
 export const SILVARA_CART_STORAGE_KEY = "silvara-cart-v1";
@@ -18,24 +22,27 @@ export function parseStoredCart(raw: string | null): CartLine[] | null {
   try {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return null;
-    const qtyById = new Map<BundleId, number>();
+    const merged = new Map<string, CartLine>();
     for (const row of parsed) {
-      const id =
-        row && typeof row === "object" && "id" in row ? (row as { id: unknown }).id : undefined;
-      const q =
-        row && typeof row === "object" && "quantity" in row
-          ? (row as { quantity: unknown }).quantity
-          : undefined;
+      if (!row || typeof row !== "object") continue;
+      const o = row as Record<string, unknown>;
+      const id = o.id;
+      const q = o.quantity;
+      const rawSize = o.sockSize ?? o.size;
       if (!isBundleId(id)) continue;
       const qty = Number(q);
       if (!Number.isFinite(qty) || qty < 1 || !Number.isInteger(qty)) continue;
-      qtyById.set(id, (qtyById.get(id) ?? 0) + qty);
+      const sockSize = isSockSize(rawSize) ? rawSize : DEFAULT_SOCK_SIZE;
+      const key = `${id}__${sockSize}`;
+      const prev = merged.get(key);
+      if (prev) {
+        merged.set(key, { ...prev, quantity: prev.quantity + qty });
+      } else {
+        merged.set(key, { id, quantity: qty, sockSize });
+      }
     }
-    if (qtyById.size === 0) return [];
-    return Array.from(qtyById.entries()).map(([bundleId, quantity]) => ({
-      id: bundleId,
-      quantity,
-    }));
+    if (merged.size === 0) return [];
+    return [...merged.values()];
   } catch {
     return null;
   }

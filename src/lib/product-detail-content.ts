@@ -2,6 +2,18 @@ import type { BundleId } from "@/lib/products";
 
 export type ProductSpecRow = { label: string; value: string };
 
+export type ProductGalleryImage = {
+  src: string;
+  alt: string;
+};
+
+/** When set, product page shows color label + thumbnail gallery (client). */
+export type ProductColorVariant = {
+  id: string;
+  label: string;
+  images: ProductGalleryImage[];
+};
+
 export type ProductDetailContent = {
   heroImage: string;
   heroAlt: string;
@@ -9,12 +21,41 @@ export type ProductDetailContent = {
   specs: ProductSpecRow[];
   /** Short factual paragraphs below specs */
   details: string[];
+  /** Optional colorways with multiple product shots (e.g. black marl pack). */
+  colorVariants?: ProductColorVariant[];
 };
+
+/**
+ * Studio shots are single-pair framing; yarn and spec match 3- and 6-packs on the line.
+ */
+function blackWhiteMarlGalleries(packName: string): ProductColorVariant[] {
+  const nshots = [1, 2, 3, 4, 5] as const;
+  return [
+    {
+      id: "black",
+      label: "Black",
+      images: nshots.map((n) => ({
+        src: `/black1pair-${n}.png`,
+        alt: `SILVARA ${packName} black marl thin crew — product photo ${n}`,
+      })),
+    },
+    {
+      id: "white",
+      label: "White",
+      images: nshots.map((n) => ({
+        src: `/white1pair-${n}.png`,
+        alt: `SILVARA ${packName} white marl thin crew — product photo ${n}`,
+      })),
+    },
+  ];
+}
 
 export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
   single: {
-    heroImage: "/1pair.jpg",
-    heroAlt: "SILVARA single pair — thin crew sock for work boots",
+    heroImage: "/black1pair-1.png",
+    heroAlt:
+      "SILVARA single pair — black or white marl thin crew sock for work boots",
+    colorVariants: blackWhiteMarlGalleries("single pair"),
     highlights: [
       "Silver-infused yarn — odor bacteria on the fiber, not a perfume cover-up",
       "Thin crew height — boot-friendly toe box and calf",
@@ -32,8 +73,10 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
     ],
   },
   triple: {
-    heroImage: "/3pair.jpg",
-    heroAlt: "SILVARA 3-pack — workweek rotation bundle",
+    heroImage: "/black1pair-1.png",
+    heroAlt:
+      "SILVARA 3-pack — black or white marl thin crew socks, workweek rotation",
+    colorVariants: blackWhiteMarlGalleries("3-pack"),
     highlights: [
       "Enough pairs to rotate a full workweek without re-wearing damp socks",
       "Same silver yarn system as the rest of the line — shift-grade, not lounge-grade",
@@ -51,8 +94,10 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
     ],
   },
   six: {
-    heroImage: "/6pair.jpg",
-    heroAlt: "SILVARA 6-pack — best per-shift value",
+    heroImage: "/black1pair-1.png",
+    heroAlt:
+      "SILVARA 6-pack — black or white marl thin crew socks, best per-shift value",
+    colorVariants: blackWhiteMarlGalleries("6-pack"),
     highlights: [
       "Best per-pair value in the line for people who live in their boots",
       "Overtime, six-day weeks, or two people splitting laundry day",
@@ -73,19 +118,19 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
     heroImage: "/shipping.jpg",
     heroAlt: "SILVARA fresh rotation — scheduled resupply shipment",
     highlights: [
-      "Scheduled resupply so you do not run out mid pay-period",
-      "3 pairs per shipment — pause or cancel before the next bill",
-      "Same product as one-time packs — subscription is for convenience only",
+      "Same thin crew as packs—subscription is delivery only",
+      "3 pairs/month · pause in Stripe before the next bill",
+      "Silver yarn vs bacteria on the fiber—not perfume",
     ],
     specs: [
       { label: "Contents", value: "3 pairs per shipment" },
-      { label: "Cadence", value: "Every 2 months (adjust in Stripe customer portal)" },
+      { label: "Cadence", value: "Monthly (Stripe portal)" },
       { label: "Style", value: "Thin crew" },
       { label: "Yarn", value: "Silver-infused blend (see care tag)" },
       { label: "Care", value: "Machine wash cold · tumble low · no bleach" },
     ],
     details: [
-      "Rotation is for people who want the loadout on autopilot. Billing and shipment timing are managed in Stripe’s secure customer flow after checkout.",
+      "Same sock as 1-, 3-, and 6-pair bundles—3 pairs per monthly bill. Manage it in Stripe after checkout.",
     ],
   },
 };

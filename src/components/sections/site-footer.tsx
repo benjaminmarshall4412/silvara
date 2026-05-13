@@ -12,9 +12,7 @@ export function SiteFooter({ region }: { region: SiteRegion }) {
             SILVARA
           </p>
           <p className="mt-3 max-w-md text-sm leading-relaxed text-background/90 md:text-base">
-            Odor control for people on their feet all day. Silver-infused yarn.
-            Bundles and rotation resupply—built for shifts and work boots, not
-            vanity packaging.
+            Thin silver crew socks—1, 3, 6, or 3/month. Bacteria on the fiber, not perfume.
           </p>
         </div>
         <div className="flex flex-col gap-4 md:items-end">

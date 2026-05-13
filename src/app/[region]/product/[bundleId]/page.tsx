@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductDetailPanel } from "@/components/product-detail-panel";
+import { ProductMediaGallery } from "@/components/product-media-gallery";
 import { PRODUCT_DETAIL_CONTENT } from "@/lib/product-detail-content";
 import {
   BUNDLE_IDS,
@@ -62,16 +63,20 @@ export default async function ProductPage({ params }: Props) {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:items-start lg:gap-12">
         <div className="min-w-0">
-          <div className="relative aspect-[4/3] w-full overflow-hidden border-4 border-foreground bg-muted">
-            <Image
-              src={detail.heroImage}
-              alt={detail.heroAlt}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 55vw"
-              priority
-            />
-          </div>
+          {detail.colorVariants?.length ? (
+            <ProductMediaGallery variants={detail.colorVariants} />
+          ) : (
+            <div className="relative aspect-square w-full cursor-zoom-in overflow-hidden border-4 border-foreground bg-muted">
+              <Image
+                src={detail.heroImage}
+                alt={detail.heroAlt}
+                fill
+                className="pointer-events-none object-cover"
+                sizes="(max-width: 1024px) 100vw, 55vw"
+                priority
+              />
+            </div>
+          )}
         </div>
 
         <ProductDetailPanel bundleId={rawId} />

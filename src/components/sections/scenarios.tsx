@@ -42,7 +42,7 @@ export function Scenarios() {
           id="scenarios-heading"
           className="font-heading mt-2 text-3xl font-extrabold uppercase leading-tight tracking-tight md:text-4xl"
         >
-          Where cheap socks lose
+          Where cheap socks fail first
         </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cases.map((c) => (

@@ -1,4 +1,4 @@
-import { PlaceholderImage } from "@/components/placeholder-image";
+import Image from "next/image";
 
 const rows = [
   {
@@ -26,12 +26,13 @@ export function VsStandard() {
       aria-labelledby="compare-heading"
     >
       <div className="mx-auto max-w-6xl">
-        <PlaceholderImage
-          width={900}
-          height={280}
-          label="VS+TABLE"
-          sizes="100vw"
-          className="mb-8 aspect-[45/14] max-h-36 w-full md:max-h-40"
+        <Image
+          src="/vs-compare-strip.png"
+          alt="Typical thick crew sock beside SILVARA thin crew sock — same surface and lighting"
+          width={1916}
+          height={821}
+          sizes="(max-width: 1200px) 100vw, 1152px"
+          className="mb-8 w-full border-4 border-foreground bg-muted h-auto"
         />
         <p className="font-mono-label text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           Quick contrast

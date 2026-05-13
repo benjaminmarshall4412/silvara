@@ -2,10 +2,13 @@ import type { BundleId } from "@/lib/products";
 import { getProduct } from "@/lib/products";
 import { getStripePriceIdsForRegion } from "@/lib/env.server";
 import type { SiteRegion } from "@/lib/site-region";
+import { DEFAULT_SOCK_SIZE, isSockSize } from "@/lib/sock-sizes";
+import type { SockSize } from "@/lib/sock-sizes";
 
 export type CheckoutLine = {
   id: BundleId;
   quantity: number;
+  sockSize: SockSize;
 };
 
 export function validateCheckoutLines(lines: unknown): CheckoutLine[] {
@@ -18,6 +21,11 @@ export function validateCheckoutLines(lines: unknown): CheckoutLine[] {
   for (const line of lines) {
     const id = typeof line?.id === "string" ? line.id : null;
     const quantity = Number(line?.quantity);
+    const rawSize =
+      line && typeof line === "object" && "sockSize" in line
+        ? (line as { sockSize?: unknown }).sockSize
+        : undefined;
+    const sockSize: SockSize = isSockSize(rawSize) ? rawSize : DEFAULT_SOCK_SIZE;
 
     if (
       !id ||
@@ -37,7 +45,7 @@ export function validateCheckoutLines(lines: unknown): CheckoutLine[] {
       throw new Error("Rotation subscription quantity cannot exceed 1");
     }
 
-    normalized.push({ id: id as BundleId, quantity });
+    normalized.push({ id: id as BundleId, quantity, sockSize });
   }
 
   return normalized;

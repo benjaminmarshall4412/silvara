@@ -32,8 +32,7 @@ export function SystemVsSession({ region }: { region: SiteRegion }) {
           Junk drawer vs workweek
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-snug text-foreground md:text-lg">
-          You budget boots, insoles, and wash day — then grab whatever cotton was
-          dry? That is the gap. Tap through for full reads.
+          Boots and laundry planned; socks are the gap. Short reads on the thin silver crew.
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

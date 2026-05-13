@@ -40,7 +40,7 @@ export function LoadoutChecklist() {
               Serious work kit
             </h2>
             <p className="mt-3 max-w-xl text-base leading-snug text-foreground/90">
-              Four lines. Most crews skip the last.
+              Boots and wash get love—socks get leftovers. SILVARA is the thin silver crew.
             </p>
 
             <ul className="mt-8 space-y-0 border-4 border-foreground">

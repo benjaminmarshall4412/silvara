@@ -5,10 +5,14 @@ import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
 import type { BundleId } from "@/lib/products";
+import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
+import type { SockSize } from "@/lib/sock-sizes";
 import { cn } from "@/lib/utils";
 
 type Props = {
   id: BundleId;
+  /** Selected crew size from the product page (defaults if omitted). */
+  sockSize?: SockSize;
   label?: string;
   className?: string;
   variant?: "primary" | "outline";
@@ -16,6 +20,7 @@ type Props = {
 
 export function AddToCartButton({
   id,
+  sockSize = DEFAULT_SOCK_SIZE,
   label = "Add to cart",
   className,
   variant = "primary",
@@ -36,8 +41,12 @@ export function AddToCartButton({
         className,
       )}
       onClick={() => {
-        add(id, 1);
-        posthog.capture("product_added_to_cart", { bundle_id: id, label });
+        add(id, 1, sockSize);
+        posthog.capture("product_added_to_cart", {
+          bundle_id: id,
+          label,
+          sock_size: sockSize,
+        });
       }}
     >
       {label}

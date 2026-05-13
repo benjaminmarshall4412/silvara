@@ -42,12 +42,19 @@ export async function POST(request: Request) {
     // `payment_method_collection` is invalid for pure one-time carts (Stripe 2026+).
     // Stripe forbids `allow_promotion_codes` and `discounts` on the same session — use one or the other.
     const siteBase = envPublic.siteUrl.replace(/\/$/, "")
+    const silvaraCartMeta = JSON.stringify(
+      lines.map((l) => ({ i: l.id, q: l.quantity, s: l.sockSize })),
+    )
     const baseParams = {
       ui_mode: "embedded_page",
       mode,
       line_items,
       return_url: `${siteBase}/${region}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       billing_address_collection: "auto" as const,
+      /** Fulfillment: sizes per line (Stripe metadata max 500 chars — keep cart small). */
+      metadata: {
+        silvara_cart: silvaraCartMeta.slice(0, 500),
+      },
       /** Physical fulfillment — collected by Stripe on the embedded Checkout page. */
       shipping_address_collection: {
         allowed_countries: shippingAllowedCountries(region),

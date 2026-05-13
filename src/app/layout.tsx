@@ -22,18 +22,17 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SILVARA — Socks for long shifts & work boots",
+  title: "SILVARA — Silver thin crew work socks",
   description:
-    "Thin crew socks with silver-infused yarn for trades, warehouse, retail floors, and anyone on their feet all day. Bundles and rotation resupply. Bacteria-driven odor control—not perfume.",
+    "Thin crew socks with silver in the yarn—boots, long shifts. 1, 3, 6 pairs or 3/month subscribed. Bacteria on the fiber, not perfume.",
   icons: {
     icon: "/silvarafavicon.jpg",
     shortcut: "/silvarafavicon.jpg",
     apple: "/silvarafavicon.jpg",
   },
   openGraph: {
-    title: "SILVARA — Socks for long shifts & work boots",
-    description:
-      "Silver-infused socks for work boots and hard floors—odor bacteria on the fiber, not a cosmetic cover-up.",
+    title: "SILVARA — Silver thin crew work socks",
+    description: "Work-boot thin crews—packs or 3 pairs/month. Not a perfume mask.",
   },
 };
 

@@ -13,14 +13,17 @@ import {
 import type { CartLine } from "@/lib/cart-types";
 import type { BundleId } from "@/lib/products";
 import { getProduct } from "@/lib/products";
+import { cartLineKey } from "@/lib/sock-sizes";
+import type { SockSize } from "@/lib/sock-sizes";
+import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { clearPersistedCart, persistCart, readPersistedCart } from "@/lib/cart-storage";
 
 type CartContextValue = {
   lines: CartLine[];
-  add: (id: BundleId, qty?: number) => void;
-  setQty: (id: BundleId, qty: number) => void;
-  remove: (id: BundleId) => void;
+  add: (id: BundleId, qty?: number, sockSize?: SockSize) => void;
+  setQty: (lineKey: string, qty: number) => void;
+  remove: (lineKey: string) => void;
   clear: () => void;
   openCart: boolean;
   setOpenCart: (open: boolean) => void;
@@ -52,10 +55,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     else persistCart(lines);
   }, [lines, storageReady]);
 
-  const add = useCallback((id: BundleId, qty = 1) => {
+  const add = useCallback((id: BundleId, qty = 1, sockSize: SockSize = DEFAULT_SOCK_SIZE) => {
     setLines((prev) => {
-      const i = prev.findIndex((l) => l.id === id);
-      if (i === -1) return [...prev, { id, quantity: qty }];
+      const i = prev.findIndex(
+        (l) => l.id === id && l.sockSize === sockSize,
+      );
+      if (i === -1) return [...prev, { id, quantity: qty, sockSize }];
       const next = [...prev];
       next[i] = { ...next[i], quantity: next[i].quantity + qty };
       return next;
@@ -63,18 +68,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setOpenCart(true);
   }, []);
 
-  const setQty = useCallback((id: BundleId, qty: number) => {
-    if (qty < 1) {
-      setLines((prev) => prev.filter((l) => l.id !== id));
-      return;
-    }
-    setLines((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, quantity: qty } : l)),
-    );
+  const setQty = useCallback((lineKey: string, qty: number) => {
+    setLines((prev) => {
+      const i = prev.findIndex((l) => cartLineKey(l) === lineKey);
+      if (i === -1) return prev;
+      if (qty < 1) return prev.filter((l) => cartLineKey(l) !== lineKey);
+      const next = [...prev];
+      next[i] = { ...next[i], quantity: qty };
+      return next;
+    });
   }, []);
 
-  const remove = useCallback((id: BundleId) => {
-    setLines((prev) => prev.filter((l) => l.id !== id));
+  const remove = useCallback((lineKey: string) => {
+    setLines((prev) => prev.filter((l) => cartLineKey(l) !== lineKey));
   }, []);
 
   const clear = useCallback(() => {
