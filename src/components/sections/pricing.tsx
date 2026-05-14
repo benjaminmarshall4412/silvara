@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { HeroTypewriter } from "@/components/hero-typewriter";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import type { BundleId, Product } from "@/lib/products";
 import {
@@ -162,22 +163,31 @@ export function Pricing() {
             className="pointer-events-none absolute inset-0 bg-black/45 md:bg-black/40"
             aria-hidden
           />
-          <div className="absolute inset-0 flex flex-col justify-end px-5 pb-12 pt-28 md:px-10 md:pb-16 md:pt-32 lg:px-14 lg:pb-20">
-            <p className="font-mono-label text-on-hero-eyebrow text-xs font-bold uppercase tracking-[0.2em] md:text-sm">
-              Thin silver crew socks
-            </p>
-            <h1
-              id="hero-heading"
-              className="font-heading mt-4 w-full max-w-[min(100%,36rem)] text-pretty text-3xl font-extrabold uppercase leading-[0.98] tracking-tight sm:max-w-[42rem] sm:text-5xl md:text-6xl lg:max-w-[48rem] lg:text-7xl"
-            >
-              <span className="block text-background">Thin crew for work boots.</span>
-              <span className="text-on-hero-accent mt-[0.12em] block">
-                Silver yarn—not&nbsp;perfume.
-              </span>
-            </h1>
-            <p className="mt-5 max-w-md text-base font-medium leading-snug text-background/88 md:text-lg">
-              Black or white marl · 1, 3, 6 pairs, or 3/month subscribed.
-            </p>
+          <div className="absolute inset-0 flex min-w-0 flex-col justify-end px-5 pb-12 pt-28 md:px-10 md:pb-16 md:pt-32 lg:px-14 lg:pb-20">
+            {/* Flow column: eyebrow + white title only — height stable so the line does not jump when the typewriter wraps. */}
+            <div className="relative z-10 w-full min-w-0 max-w-[min(100%,36rem)] shrink-0 pb-[min(24vh,9rem)] sm:max-w-[42rem] sm:pb-[min(36vh,13rem)] lg:max-w-[48rem] lg:pb-[min(38vh,14rem)]">
+              <p className="font-mono-label text-on-hero-eyebrow text-xs font-bold uppercase tracking-[0.2em] md:text-sm">
+                Thin silver crew socks
+              </p>
+              <h1
+                id="hero-heading"
+                className="font-heading mt-3 w-full text-pretty text-3xl font-extrabold uppercase leading-[0.98] tracking-tighter sm:tracking-tight sm:mt-4 sm:text-5xl md:text-6xl lg:text-7xl"
+              >
+                <span className="block text-background">Thin crew for work boots.</span>
+                <span className="sr-only">
+                  Silver yarn, not perfume: targets bacteria on the fiber, not a scent mask.
+                </span>
+              </h1>
+            </div>
+            {/* Typewriter + subcopy: out of document flow below the title so longer lines do not push the white headline up. */}
+            <div className="pointer-events-none absolute inset-x-5 bottom-12 z-10 flex max-h-[min(24vh,9rem)] w-full min-w-0 flex-col justify-end gap-3 overflow-hidden sm:max-h-[min(36vh,13rem)] md:inset-x-10 md:bottom-16 lg:max-h-[min(38vh,14rem)] lg:inset-x-14 lg:bottom-20">
+              <div className="w-full min-w-0 max-w-[min(100%,36rem)] font-heading text-3xl font-extrabold uppercase leading-[0.98] tracking-tighter sm:max-w-[42rem] sm:text-5xl md:text-6xl lg:max-w-[48rem] lg:text-7xl">
+                <HeroTypewriter className="text-on-hero-accent" />
+              </div>
+              <p className="max-w-md text-base font-medium leading-snug text-background/88 md:text-lg">
+                Black or white marl · 1, 3, 6 pairs, or 3/month subscribed.
+              </p>
+            </div>
           </div>
         </div>
       </div>
