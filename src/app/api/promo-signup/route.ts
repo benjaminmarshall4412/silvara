@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { persistEmailSignup } from "@/lib/persist-email-signup";
 import { getPostHogClient } from "@/lib/posthog-server";
 import {
   SILVARA_PROMO_COOKIE_NAME,
   mintPromoEligibleToken,
 } from "@/lib/promo-cookie";
+import { parseSignupRegion, sanitizeSignupPathname } from "@/lib/signup-pathname";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,6 +27,23 @@ export async function POST(req: Request) {
 
   if (!EMAIL_RE.test(raw)) {
     return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+  }
+
+  const bodyObj = body && typeof body === "object" ? (body as Record<string, unknown>) : null;
+  const signupRegion = bodyObj ? parseSignupRegion(bodyObj.region) : null;
+  const pathRaw =
+    bodyObj && typeof bodyObj.pathname === "string"
+      ? bodyObj.pathname
+      : bodyObj && typeof bodyObj.path === "string"
+        ? bodyObj.path
+        : undefined;
+  if (signupRegion) {
+    const pathname = sanitizeSignupPathname(pathRaw, signupRegion);
+    await persistEmailSignup({
+      email: raw,
+      region: signupRegion,
+      pathname,
+    });
   }
 
   const webhook = process.env.PROMO_SIGNUP_WEBHOOK_URL;

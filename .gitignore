@@ -43,5 +43,10 @@ stripe-price-ids*.local.txt
 *.tsbuildinfo
 next-env.d.ts
 
+# Prisma generated client (regenerated via `prisma generate`)
+/src/generated/prisma
+
 # local agent / IDE
 .claude/
+
+/src/generated/prisma

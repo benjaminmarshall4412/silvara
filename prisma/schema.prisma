@@ -1,0 +1,26 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Marketing / promo email captures with regional site context.
+model EmailSignup {
+  id        String   @id @default(cuid())
+  email     String   @db.VarChar(320)
+  region    String   @db.VarChar(8)
+  pathname  String   @db.VarChar(1024)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([region])
+  @@index([email])
+}

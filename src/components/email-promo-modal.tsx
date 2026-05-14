@@ -1,9 +1,11 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 
 import { envPublic } from "@/lib/env.public";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
+import { useSiteRegion } from "@/lib/site-region-context";
 import {
   useCallback,
   useEffect,
@@ -29,6 +31,8 @@ function getPromoPct(): number {
 
 export function EmailPromoModal() {
   const formId = useId();
+  const pathname = usePathname();
+  const siteRegion = useSiteRegion();
   const pct = getPromoPct();
   const { state: promoState, refetch: refetchPromo } = usePromoEligibility();
 
@@ -99,7 +103,11 @@ export function EmailPromoModal() {
         const res = await fetch("/api/promo-signup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: email.trim() }),
+          body: JSON.stringify({
+            email: email.trim(),
+            region: siteRegion,
+            pathname,
+          }),
           credentials: "same-origin",
         });
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -117,7 +125,7 @@ export function EmailPromoModal() {
         setStatus("error");
       }
     },
-    [email, pct, refetchPromo],
+    [email, pathname, pct, refetchPromo, siteRegion],
   );
 
   if (!isBrowser || pct <= 0 || !visible) return null;
