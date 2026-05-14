@@ -6,6 +6,7 @@ import {
   SILVARA_PROMO_COOKIE_NAME,
   mintPromoEligibleToken,
 } from "@/lib/promo-cookie";
+import { syncPromoSignupToResend } from "@/lib/resend-sync-promo-contact";
 import { parseSignupRegion, sanitizeSignupPathname } from "@/lib/signup-pathname";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -45,6 +46,8 @@ export async function POST(req: Request) {
       pathname,
     });
   }
+
+  await syncPromoSignupToResend({ email: raw });
 
   const webhook = process.env.PROMO_SIGNUP_WEBHOOK_URL;
   if (webhook) {
