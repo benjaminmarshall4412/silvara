@@ -1,6 +1,9 @@
 import type Stripe from "stripe";
 
 import { getPostHogClient } from "@/lib/posthog-server";
+import { SILVARA_RESEND_EVENTS } from "@/lib/resend-automation-events";
+import { sendResendAutomationEvent } from "@/lib/send-resend-automation-event";
+import { isSiteRegion } from "@/lib/site-region";
 
 /** Shared handler after signature verification — keep logic in one place for US + UK endpoints. */
 export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> {
@@ -41,6 +44,20 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
         posthog.identify({
           distinctId: session.customer_details.email,
           properties: { email: session.customer_details.email },
+        });
+
+        const rawRegion = session.metadata?.silvara_region;
+        const region = isSiteRegion(rawRegion) ? rawRegion : null;
+        await sendResendAutomationEvent({
+          event: SILVARA_RESEND_EVENTS.ORDER_COMPLETED,
+          email: session.customer_details.email,
+          payload: {
+            session_id: session.id,
+            amount_total: session.amount_total,
+            currency: session.currency,
+            mode: session.mode,
+            region,
+          },
         });
       }
       break;

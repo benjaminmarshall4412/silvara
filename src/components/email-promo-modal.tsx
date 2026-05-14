@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 
 import { envPublic } from "@/lib/env.public";
+import { SILVARA_MARKETING_EMAIL_LS } from "@/lib/marketing-email-storage";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import {
@@ -117,6 +118,11 @@ export function EmailPromoModal() {
           return;
         }
         setStatus("done");
+        try {
+          localStorage.setItem(SILVARA_MARKETING_EMAIL_LS, email.trim().toLowerCase());
+        } catch {
+          /* ignore */
+        }
         posthog.capture("promo_email_submitted", { promo_pct: pct });
         posthog.identify(email.trim(), { email: email.trim() });
         void refetchPromo();

@@ -54,6 +54,7 @@ export async function POST(request: Request) {
       /** Fulfillment: sizes per line (Stripe metadata max 500 chars — keep cart small). */
       metadata: {
         silvara_cart: silvaraCartMeta.slice(0, 500),
+        silvara_region: region,
       },
       /** Physical fulfillment — collected by Stripe on the embedded Checkout page. */
       shipping_address_collection: {

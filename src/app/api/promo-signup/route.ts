@@ -6,7 +6,9 @@ import {
   SILVARA_PROMO_COOKIE_NAME,
   mintPromoEligibleToken,
 } from "@/lib/promo-cookie";
+import { SILVARA_RESEND_EVENTS } from "@/lib/resend-automation-events";
 import { syncPromoSignupToResend } from "@/lib/resend-sync-promo-contact";
+import { sendResendAutomationEvent } from "@/lib/send-resend-automation-event";
 import { parseSignupRegion, sanitizeSignupPathname } from "@/lib/signup-pathname";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,6 +50,18 @@ export async function POST(req: Request) {
   }
 
   await syncPromoSignupToResend({ email: raw });
+
+  await sendResendAutomationEvent({
+    event: SILVARA_RESEND_EVENTS.PROMO_SIGNUP,
+    email: raw,
+    payload:
+      signupRegion != null
+        ? {
+            region: signupRegion,
+            pathname: sanitizeSignupPathname(pathRaw, signupRegion),
+          }
+        : {},
+  });
 
   const webhook = process.env.PROMO_SIGNUP_WEBHOOK_URL;
   if (webhook) {

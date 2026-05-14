@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 
 import { ProductDetailPanel } from "@/components/product-detail-panel";
 import { ProductMediaGallery } from "@/components/product-media-gallery";
+import { ResendProductViewTracker } from "@/components/resend-product-view-tracker";
 import { PRODUCT_DETAIL_CONTENT } from "@/lib/product-detail-content";
 import {
   BUNDLE_IDS,
@@ -53,6 +54,7 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 md:px-6 md:py-14">
+      <ResendProductViewTracker region={region} bundleId={rawId} />
       <nav className="font-mono-label text-xs uppercase tracking-widest text-muted-foreground">
         <Link href={shop} className="hover:text-foreground">
           Shop

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CartDrawer } from "@/components/cart-drawer";
 import { EmailPromoModal } from "@/components/email-promo-modal";
 import { PosthogPageEngagement } from "@/components/posthog-page-engagement";
+import { ResendCartAbandonTracker } from "@/components/resend-cart-abandon-tracker";
 import { SiteHeader } from "@/components/site-header";
 import { CartProvider } from "@/lib/cart-context";
 import { PromoEligibilityProvider } from "@/lib/promo-eligibility-context";
@@ -29,6 +30,7 @@ export default async function RegionLayout({ children, params }: Props) {
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <CartDrawer />
+            <ResendCartAbandonTracker />
             <EmailPromoModal />
           </CartProvider>
         </StripeCatalogPricesProvider>
