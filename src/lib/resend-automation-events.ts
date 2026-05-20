@@ -6,10 +6,10 @@
  * `{{{RESEND_UNSUBSCRIBE_URL}}}` where Resend requires it for marketing.
  *
  * Flow wiring (this repo):
- * - `SILVARA_RESEND_EVENTS.PROMO_SIGNUP` → POST /api/promo-signup (server)
- * - `SILVARA_RESEND_EVENTS.PRODUCT_VIEWED` → POST /api/resend/track (client, needs marketing email)
- * - `SILVARA_RESEND_EVENTS.CART_ABANDONED` → POST /api/resend/track (client, needs marketing email)
- * - `SILVARA_RESEND_EVENTS.ORDER_COMPLETED` → Stripe webhook checkout.session.completed (server)
+ * - `SILVARA_RESEND_EVENTS.PROMO_SIGNUP` → POST /api/promo-signup — once per email (`promoAutomationSentAt`)
+ * - `SILVARA_RESEND_EVENTS.PRODUCT_VIEWED` → POST /api/resend/track — skipped if `firstOrderAt` set
+ * - `SILVARA_RESEND_EVENTS.CART_ABANDONED` → POST /api/resend/track — skipped if `firstOrderAt` set
+ * - `SILVARA_RESEND_EVENTS.ORDER_COMPLETED` → Stripe webhook — once per email (`firstOrderAt`)
  * - `SILVARA_RESEND_EVENTS.WINBACK` → reserved; no server trigger until you have order history + cron
  *
  * Suggested delays (configure in Resend, not in code):

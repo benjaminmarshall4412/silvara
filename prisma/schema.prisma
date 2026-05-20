@@ -14,13 +14,18 @@ datasource db {
 
 /// Marketing / promo email captures with regional site context.
 model EmailSignup {
-  id        String   @id @default(cuid())
-  email     String   @db.VarChar(320)
-  region    String   @db.VarChar(8)
-  pathname  String   @db.VarChar(1024)
-  createdAt DateTime @default(now())
+  id                    String    @id @default(cuid())
+  email                 String    @unique @db.VarChar(320)
+  region                String    @db.VarChar(8)
+  pathname              String    @db.VarChar(1024)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  /// Set when the welcome (`silvara.promo_signup`) automation has been triggered once.
+  promoAutomationSentAt DateTime?
+  /// Set on first paid checkout — suppresses repeat post-purchase + browse/cart events.
+  firstOrderAt          DateTime?
 
   @@index([createdAt])
   @@index([region])
-  @@index([email])
+  @@index([firstOrderAt])
 }

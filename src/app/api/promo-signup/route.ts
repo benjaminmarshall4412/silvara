@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { persistEmailSignup } from "@/lib/persist-email-signup";
+import {
+  markPromoAutomationSent,
+  upsertPromoSignup,
+} from "@/lib/email-signup-db";
 import { getPostHogClient } from "@/lib/posthog-server";
 import {
   SILVARA_PROMO_COOKIE_NAME,
@@ -40,28 +43,39 @@ export async function POST(req: Request) {
       : bodyObj && typeof bodyObj.path === "string"
         ? bodyObj.path
         : undefined;
+
+  let shouldSendPromoAutomation = false;
+  let isReturningEmail = false;
+
   if (signupRegion) {
     const pathname = sanitizeSignupPathname(pathRaw, signupRegion);
-    await persistEmailSignup({
+    const signup = await upsertPromoSignup({
       email: raw,
       region: signupRegion,
       pathname,
     });
+    shouldSendPromoAutomation = signup.shouldSendPromoAutomation;
+    isReturningEmail = signup.isReturningEmail;
   }
 
   await syncPromoSignupToResend({ email: raw });
 
-  await sendResendAutomationEvent({
-    event: SILVARA_RESEND_EVENTS.PROMO_SIGNUP,
-    email: raw,
-    payload:
-      signupRegion != null
-        ? {
-            region: signupRegion,
-            pathname: sanitizeSignupPathname(pathRaw, signupRegion),
-          }
-        : {},
-  });
+  if (shouldSendPromoAutomation) {
+    await sendResendAutomationEvent({
+      event: SILVARA_RESEND_EVENTS.PROMO_SIGNUP,
+      email: raw,
+      payload:
+        signupRegion != null
+          ? {
+              region: signupRegion,
+              pathname: sanitizeSignupPathname(pathRaw, signupRegion),
+            }
+          : {},
+    });
+    if (signupRegion) {
+      await markPromoAutomationSent(raw);
+    }
+  }
 
   const webhook = process.env.PROMO_SIGNUP_WEBHOOK_URL;
   if (webhook) {
@@ -84,13 +98,23 @@ export async function POST(req: Request) {
   posthog.capture({
     distinctId: raw,
     event: "promo_signup_completed",
-    properties: { email: raw, source: "silvara-email-promo" },
+    properties: {
+      email: raw,
+      source: "silvara-email-promo",
+      returning_email: isReturningEmail,
+      welcome_automation_sent: shouldSendPromoAutomation,
+    },
   });
   posthog.identify({ distinctId: raw, properties: { email: raw } });
   await posthog.shutdown();
 
   const token = mintPromoEligibleToken();
-  const res = NextResponse.json({ ok: true });
+  const res = NextResponse.json({
+    ok: true,
+    /** False when this email already received the welcome automation once. */
+    welcomeAutomationSent: shouldSendPromoAutomation,
+    returningEmail: isReturningEmail,
+  });
   res.cookies.set(SILVARA_PROMO_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",

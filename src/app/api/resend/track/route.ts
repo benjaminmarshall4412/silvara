@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { emailHasPurchased } from "@/lib/email-signup-db";
 import { SILVARA_RESEND_EVENTS } from "@/lib/resend-automation-events";
 import { sendResendAutomationEvent } from "@/lib/send-resend-automation-event";
 import { parseSignupRegion } from "@/lib/signup-pathname";
@@ -43,6 +44,10 @@ export async function POST(req: Request) {
   }
   if (!email) {
     return NextResponse.json({ error: "Email required" }, { status: 400 });
+  }
+
+  if (await emailHasPurchased(email)) {
+    return NextResponse.json({ ok: true, skipped: "already_purchased" });
   }
 
   if (kind === "product_viewed") {

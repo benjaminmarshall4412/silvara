@@ -1,6 +1,7 @@
 import type Stripe from "stripe";
 
 import { getPostHogClient } from "@/lib/posthog-server";
+import { recordFirstOrderIfNeeded } from "@/lib/email-signup-db";
 import { SILVARA_RESEND_EVENTS } from "@/lib/resend-automation-events";
 import { sendResendAutomationEvent } from "@/lib/send-resend-automation-event";
 import { isSiteRegion } from "@/lib/site-region";
@@ -48,17 +49,23 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
 
         const rawRegion = session.metadata?.silvara_region;
         const region = isSiteRegion(rawRegion) ? rawRegion : null;
-        await sendResendAutomationEvent({
-          event: SILVARA_RESEND_EVENTS.ORDER_COMPLETED,
+        const { shouldSendOrderAutomation } = await recordFirstOrderIfNeeded({
           email: session.customer_details.email,
-          payload: {
-            session_id: session.id,
-            amount_total: session.amount_total,
-            currency: session.currency,
-            mode: session.mode,
-            region,
-          },
+          region,
         });
+        if (shouldSendOrderAutomation) {
+          await sendResendAutomationEvent({
+            event: SILVARA_RESEND_EVENTS.ORDER_COMPLETED,
+            email: session.customer_details.email,
+            payload: {
+              session_id: session.id,
+              amount_total: session.amount_total,
+              currency: session.currency,
+              mode: session.mode,
+              region,
+            },
+          });
+        }
       }
       break;
     }
