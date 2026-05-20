@@ -49,20 +49,6 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
 
         const rawRegion = session.metadata?.silvara_region;
         const region = isSiteRegion(rawRegion) ? rawRegion : null;
-        const orderPayload = {
-          session_id: session.id,
-          amount_total: session.amount_total,
-          currency: session.currency,
-          mode: session.mode,
-          region,
-        };
-
-        await sendResendAutomationEvent({
-          event: SILVARA_RESEND_EVENTS.ORDER_RECEIPT,
-          email: session.customer_details.email,
-          payload: orderPayload,
-        });
-
         const { shouldSendOrderAutomation } = await recordFirstOrderIfNeeded({
           email: session.customer_details.email,
           region,
@@ -71,7 +57,13 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
           await sendResendAutomationEvent({
             event: SILVARA_RESEND_EVENTS.ORDER_COMPLETED,
             email: session.customer_details.email,
-            payload: orderPayload,
+            payload: {
+              session_id: session.id,
+              amount_total: session.amount_total,
+              currency: session.currency,
+              mode: session.mode,
+              region,
+            },
           });
         }
       }
