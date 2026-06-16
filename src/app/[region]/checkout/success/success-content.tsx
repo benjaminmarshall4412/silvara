@@ -3,9 +3,11 @@
 import posthog from "posthog-js";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/lib/cart-context";
+import { envPublic } from "@/lib/env.public";
+import { gtagReportConversion } from "@/lib/gtag";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 
@@ -13,6 +15,8 @@ type SessionStatus = {
   status: string;
   paymentStatus: string;
   customerEmail: string | null;
+  amountTotal: number | null;
+  currency: string | null;
 };
 
 export function SuccessContent() {
@@ -23,6 +27,7 @@ export function SuccessContent() {
   const { clear } = useCart();
   const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const conversionLogged = useRef(false);
 
   useEffect(() => {
     clear();
@@ -55,6 +60,23 @@ export function SuccessContent() {
           });
           if (payload.customerEmail) {
             posthog.identify(payload.customerEmail, { email: payload.customerEmail });
+          }
+          const sendTo = envPublic.googleAdsPurchaseSendTo.trim();
+          if (
+            !conversionLogged.current &&
+            payload.paymentStatus === "paid" &&
+            sendTo
+          ) {
+            conversionLogged.current = true;
+            const value =
+              typeof payload.amountTotal === "number"
+                ? payload.amountTotal / 100
+                : undefined;
+            gtagReportConversion(sendTo, {
+              value,
+              currency: payload.currency?.toUpperCase() ?? undefined,
+              transactionId: sessionIdParam,
+            });
           }
         }
       } catch (error) {

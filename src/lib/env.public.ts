@@ -13,6 +13,13 @@ export const envPublic = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? fallbackSiteUrl,
   /** Email capture modal (%). Set `0` to hide. */
   promoPct: process.env.NEXT_PUBLIC_SILVARA_PROMO_PCT ?? "15",
+  /** Google Ads account id, e.g. AW-18207293610. Leave empty to disable. */
+  googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "",
+  /**
+   * Purchase conversion `send_to` from Google Ads event snippet, e.g. AW-18207293610/AbCdEfGh.
+   * Optional if you only use URL-based conversion on /checkout/success.
+   */
+  googleAdsPurchaseSendTo: process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO ?? "",
 };
 
 export function getStripePublishableKeyForRegion(region: SiteRegion): string {

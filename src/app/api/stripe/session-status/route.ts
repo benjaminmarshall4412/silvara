@@ -24,6 +24,8 @@ export async function GET(request: Request) {
       status: session.status,
       paymentStatus: session.payment_status,
       customerEmail: session.customer_details?.email ?? null,
+      amountTotal: session.amount_total,
+      currency: session.currency,
     });
   } catch (error) {
     console.error("[stripe] failed to fetch session status", error);

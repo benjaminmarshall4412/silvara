@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Space_Grotesk, Syne } from "next/font/google";
 
+import { GoogleAdsGtag } from "@/components/google-ads-gtag";
 import "./globals.css";
 
 const syne = Syne({
@@ -47,7 +48,10 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${syne.variable} ${spaceGrotesk.variable} ${ibmMono.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <GoogleAdsGtag />
+        {children}
+      </body>
     </html>
   );
 }

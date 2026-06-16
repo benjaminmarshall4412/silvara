@@ -52,9 +52,18 @@ if (!secretKey) {
 
 const stripe = new Stripe(secretKey)
 
+/** Stripe coupon `name` max length is 40 characters. */
+function couponDisplayName(regionCode, percentOff) {
+  const name = `SILVARA email promo ${percentOff}% (${regionCode.toUpperCase()})`
+  if (name.length > 40) {
+    throw new Error(`Coupon name too long (${name.length}/40): ${name}`)
+  }
+  return name
+}
+
 async function run() {
   const coupon = await stripe.coupons.create({
-    name: `SILVARA email signup · ${pct}% · first order (${region.toUpperCase()})`,
+    name: couponDisplayName(region, pct),
     percent_off: pct,
     duration: "once",
     metadata: {
