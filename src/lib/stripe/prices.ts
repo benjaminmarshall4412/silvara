@@ -7,7 +7,7 @@ import {
   isSockColor,
   type SockColor,
 } from "@/lib/sock-colors";
-import { DEFAULT_SOCK_SIZE, isSockSize } from "@/lib/sock-sizes";
+import { normalizeSockSize } from "@/lib/sock-sizes";
 import type { SockSize } from "@/lib/sock-sizes";
 
 export type CheckoutLine = {
@@ -35,7 +35,7 @@ export function validateCheckoutLines(lines: unknown): CheckoutLine[] {
       line && typeof line === "object" && "sockColor" in line
         ? (line as { sockColor?: unknown }).sockColor
         : undefined;
-    const sockSize: SockSize = isSockSize(rawSize) ? rawSize : DEFAULT_SOCK_SIZE;
+    const sockSize: SockSize = normalizeSockSize(rawSize);
     const sockColor: SockColor = isSockColor(rawColor)
       ? rawColor
       : DEFAULT_SOCK_COLOR;

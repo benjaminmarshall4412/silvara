@@ -11,7 +11,7 @@ import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import { formatMoney, getProduct } from "@/lib/products";
 import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
-import { cartLineKey, SOCK_SIZE_SHORT } from "@/lib/sock-sizes";
+import { cartLineKey } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
@@ -110,8 +110,7 @@ export function CartDrawer() {
                         {p.name}
                       </p>
                       <p className="mt-1 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-                        {SOCK_COLOR_LABEL[line.sockColor]} · size{" "}
-                        {SOCK_SIZE_SHORT[line.sockSize]} · crew
+                        {SOCK_COLOR_LABEL[line.sockColor]} · one size
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {p.isSubscription

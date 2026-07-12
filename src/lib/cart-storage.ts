@@ -5,8 +5,7 @@ import {
   isSockColor,
 } from "@/lib/sock-colors";
 import {
-  DEFAULT_SOCK_SIZE,
-  isSockSize,
+  normalizeSockSize,
   cartLineKey,
 } from "@/lib/sock-sizes";
 
@@ -38,7 +37,7 @@ export function parseStoredCart(raw: string | null): CartLine[] | null {
       if (!isBundleId(id)) continue;
       const qty = Number(q);
       if (!Number.isFinite(qty) || qty < 1 || !Number.isInteger(qty)) continue;
-      const sockSize = isSockSize(rawSize) ? rawSize : DEFAULT_SOCK_SIZE;
+      const sockSize = normalizeSockSize(rawSize);
       const sockColor = isSockColor(rawColor) ? rawColor : DEFAULT_SOCK_COLOR;
       const line: CartLine = { id, quantity: qty, sockSize, sockColor };
       const key = cartLineKey(line);

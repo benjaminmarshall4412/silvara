@@ -4,29 +4,34 @@ import {
   type SockColor,
 } from "@/lib/sock-colors";
 
-export const SOCK_SIZES = ["S", "M", "L", "XL"] as const;
+/** Product is one-size; legacy S/M/L/XL cart values normalize to OS. */
+export const SOCK_SIZES = ["OS"] as const;
 export type SockSize = (typeof SOCK_SIZES)[number];
 
-export const DEFAULT_SOCK_SIZE: SockSize = "M";
+export const DEFAULT_SOCK_SIZE: SockSize = "OS";
+
+const LEGACY_SIZES = new Set(["S", "M", "L", "XL", "OS"]);
 
 /** Short label for cart / checkout rows */
 export const SOCK_SIZE_SHORT: Record<SockSize, string> = {
-  S: "S",
-  M: "M",
-  L: "L",
-  XL: "XL",
+  OS: "One size",
 };
 
-/** Product-page helper copy (approximate US men's shoe range for crew). */
+/** Product-page helper copy */
 export const SOCK_SIZE_DESCRIPTION: Record<SockSize, string> = {
-  S: "US men's ~5–7",
-  M: "US men's ~8–10",
-  L: "US men's ~11–13",
-  XL: "US men's ~14+",
+  OS: "One size fits most",
 };
 
 export function isSockSize(value: unknown): value is SockSize {
-  return typeof value === "string" && (SOCK_SIZES as readonly string[]).includes(value);
+  return value === "OS";
+}
+
+/** Accept legacy cart sizes and map everything to one-size. */
+export function normalizeSockSize(value: unknown): SockSize {
+  if (typeof value === "string" && LEGACY_SIZES.has(value)) {
+    return DEFAULT_SOCK_SIZE;
+  }
+  return DEFAULT_SOCK_SIZE;
 }
 
 const KEY_SEP = "__";

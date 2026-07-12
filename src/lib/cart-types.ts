@@ -5,7 +5,7 @@ import type { SockSize } from "@/lib/sock-sizes";
 export type CartLine = {
   id: BundleId;
   quantity: number;
-  /** Crew sock size for fulfillment; persisted with the line. */
+  /** One-size fit; persisted for fulfillment metadata. */
   sockSize: SockSize;
   /** Colorway for fulfillment; persisted with the line. */
   sockColor: SockColor;

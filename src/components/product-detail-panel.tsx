@@ -21,19 +21,13 @@ import {
   SOCK_COLORS,
   type SockColor,
 } from "@/lib/sock-colors";
-import {
-  DEFAULT_SOCK_SIZE,
-  SOCK_SIZE_DESCRIPTION,
-  SOCK_SIZES,
-} from "@/lib/sock-sizes";
-import type { SockSize } from "@/lib/sock-sizes";
+import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
 
 export function ProductDetailPanel({ bundleId }: { bundleId: BundleId }) {
   const region = useSiteRegion();
   const shop = withSiteRegion(region, "/#loadouts");
   const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const { state: promo } = usePromoEligibility();
-  const [sockSize, setSockSize] = useState<SockSize>(DEFAULT_SOCK_SIZE);
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);
   const p = getProduct(bundleId);
 
@@ -93,52 +87,33 @@ export function ProductDetailPanel({ bundleId }: { bundleId: BundleId }) {
           {p.unitNote}
           {p.isSubscription ? " · Billed per shipment in checkout." : null}
         </p>
-        <div className="mt-5 space-y-4">
-          <div>
-            <label
-              htmlFor={`sock-color-${bundleId}`}
-              className="inline-block cursor-pointer font-mono-label text-xs font-bold uppercase tracking-wide text-foreground"
-            >
-              Color
-            </label>
-            <select
-              id={`sock-color-${bundleId}`}
-              value={sockColor}
-              onChange={(e) => setSockColor(e.target.value as SockColor)}
-              className="border-border mt-2 w-full max-w-md cursor-pointer border-2 border-foreground bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {SOCK_COLORS.map((c) => (
-                <option key={c} value={c}>
-                  {SOCK_COLOR_LABEL[c]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label
-              htmlFor={`sock-size-${bundleId}`}
-              className="inline-block cursor-pointer font-mono-label text-xs font-bold uppercase tracking-wide text-foreground"
-            >
-              Sock size (crew)
-            </label>
-            <select
-              id={`sock-size-${bundleId}`}
-              value={sockSize}
-              onChange={(e) => setSockSize(e.target.value as SockSize)}
-              className="border-border mt-2 w-full max-w-md cursor-pointer border-2 border-foreground bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              {SOCK_SIZES.map((s) => (
-                <option key={s} value={s}>
-                  {s} — {SOCK_SIZE_DESCRIPTION[s]}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="mt-5">
+          <label
+            htmlFor={`sock-color-${bundleId}`}
+            className="inline-block cursor-pointer font-mono-label text-xs font-bold uppercase tracking-wide text-foreground"
+          >
+            Color
+          </label>
+          <select
+            id={`sock-color-${bundleId}`}
+            value={sockColor}
+            onChange={(e) => setSockColor(e.target.value as SockColor)}
+            className="border-border mt-2 w-full max-w-md cursor-pointer border-2 border-foreground bg-background px-3 py-2.5 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {SOCK_COLORS.map((c) => (
+              <option key={c} value={c}>
+                {SOCK_COLOR_LABEL[c]}
+              </option>
+            ))}
+          </select>
+          <p className="mt-2 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
+            One size fits most
+          </p>
         </div>
         <div className="mt-6">
           <AddToCartButton
             id={bundleId}
-            sockSize={sockSize}
+            sockSize={DEFAULT_SOCK_SIZE}
             sockColor={sockColor}
             label={p.isSubscription ? "Start rotation" : "Add to cart"}
             className="!h-14 !text-base md:!h-16"
