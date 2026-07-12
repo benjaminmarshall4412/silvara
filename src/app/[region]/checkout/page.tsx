@@ -15,6 +15,7 @@ import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { formatMoney, getProduct } from "@/lib/products";
+import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
 import { cartLineKey, SOCK_SIZE_SHORT } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { withSiteRegion } from "@/lib/site-region";
@@ -162,7 +163,8 @@ export default function CheckoutPage() {
                   {p.name} × {line.quantity}
                 </p>
                 <p className="mt-1 font-mono-label text-[0.65rem] uppercase text-muted-foreground">
-                  Size {SOCK_SIZE_SHORT[line.sockSize]}
+                  {SOCK_COLOR_LABEL[line.sockColor]} · size{" "}
+                  {SOCK_SIZE_SHORT[line.sockSize]}
                 </p>
                 {p.isSubscription && (
                   <p className="mt-1 font-mono-label text-[0.65rem] uppercase text-muted-foreground">

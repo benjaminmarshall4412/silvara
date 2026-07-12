@@ -1,4 +1,8 @@
 import type { BundleId } from "@/lib/products";
+import {
+  DEFAULT_SOCK_COLOR,
+  type SockColor,
+} from "@/lib/sock-colors";
 
 export const SOCK_SIZES = ["S", "M", "L", "XL"] as const;
 export type SockSize = (typeof SOCK_SIZES)[number];
@@ -27,6 +31,10 @@ export function isSockSize(value: unknown): value is SockSize {
 
 const KEY_SEP = "__";
 
-export function cartLineKey(line: { id: BundleId; sockSize?: SockSize }): string {
-  return `${line.id}${KEY_SEP}${line.sockSize ?? DEFAULT_SOCK_SIZE}`;
+export function cartLineKey(line: {
+  id: BundleId;
+  sockSize?: SockSize;
+  sockColor?: SockColor;
+}): string {
+  return `${line.id}${KEY_SEP}${line.sockSize ?? DEFAULT_SOCK_SIZE}${KEY_SEP}${line.sockColor ?? DEFAULT_SOCK_COLOR}`;
 }

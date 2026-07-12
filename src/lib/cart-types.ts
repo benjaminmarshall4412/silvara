@@ -1,4 +1,5 @@
 import type { BundleId } from "@/lib/products";
+import type { SockColor } from "@/lib/sock-colors";
 import type { SockSize } from "@/lib/sock-sizes";
 
 export type CartLine = {
@@ -6,4 +7,6 @@ export type CartLine = {
   quantity: number;
   /** Crew sock size for fulfillment; persisted with the line. */
   sockSize: SockSize;
+  /** Colorway for fulfillment; persisted with the line. */
+  sockColor: SockColor;
 };

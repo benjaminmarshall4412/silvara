@@ -1,8 +1,13 @@
 import type { CartLine } from "@/lib/cart-types";
 import type { BundleId } from "@/lib/products";
 import {
+  DEFAULT_SOCK_COLOR,
+  isSockColor,
+} from "@/lib/sock-colors";
+import {
   DEFAULT_SOCK_SIZE,
   isSockSize,
+  cartLineKey,
 } from "@/lib/sock-sizes";
 
 /** localStorage payload */
@@ -29,16 +34,19 @@ export function parseStoredCart(raw: string | null): CartLine[] | null {
       const id = o.id;
       const q = o.quantity;
       const rawSize = o.sockSize ?? o.size;
+      const rawColor = o.sockColor ?? o.color;
       if (!isBundleId(id)) continue;
       const qty = Number(q);
       if (!Number.isFinite(qty) || qty < 1 || !Number.isInteger(qty)) continue;
       const sockSize = isSockSize(rawSize) ? rawSize : DEFAULT_SOCK_SIZE;
-      const key = `${id}__${sockSize}`;
+      const sockColor = isSockColor(rawColor) ? rawColor : DEFAULT_SOCK_COLOR;
+      const line: CartLine = { id, quantity: qty, sockSize, sockColor };
+      const key = cartLineKey(line);
       const prev = merged.get(key);
       if (prev) {
         merged.set(key, { ...prev, quantity: prev.quantity + qty });
       } else {
-        merged.set(key, { id, quantity: qty, sockSize });
+        merged.set(key, line);
       }
     }
     if (merged.size === 0) return [];

@@ -13,6 +13,10 @@ import {
 import type { CartLine } from "@/lib/cart-types";
 import type { BundleId } from "@/lib/products";
 import { getProduct } from "@/lib/products";
+import {
+  DEFAULT_SOCK_COLOR,
+  type SockColor,
+} from "@/lib/sock-colors";
 import { cartLineKey } from "@/lib/sock-sizes";
 import type { SockSize } from "@/lib/sock-sizes";
 import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
@@ -21,7 +25,12 @@ import { clearPersistedCart, persistCart, readPersistedCart } from "@/lib/cart-s
 
 type CartContextValue = {
   lines: CartLine[];
-  add: (id: BundleId, qty?: number, sockSize?: SockSize) => void;
+  add: (
+    id: BundleId,
+    qty?: number,
+    sockSize?: SockSize,
+    sockColor?: SockColor,
+  ) => void;
   setQty: (lineKey: string, qty: number) => void;
   remove: (lineKey: string) => void;
   clear: () => void;
@@ -55,18 +64,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
     else persistCart(lines);
   }, [lines, storageReady]);
 
-  const add = useCallback((id: BundleId, qty = 1, sockSize: SockSize = DEFAULT_SOCK_SIZE) => {
-    setLines((prev) => {
-      const i = prev.findIndex(
-        (l) => l.id === id && l.sockSize === sockSize,
-      );
-      if (i === -1) return [...prev, { id, quantity: qty, sockSize }];
-      const next = [...prev];
-      next[i] = { ...next[i], quantity: next[i].quantity + qty };
-      return next;
-    });
-    setOpenCart(true);
-  }, []);
+  const add = useCallback(
+    (
+      id: BundleId,
+      qty = 1,
+      sockSize: SockSize = DEFAULT_SOCK_SIZE,
+      sockColor: SockColor = DEFAULT_SOCK_COLOR,
+    ) => {
+      setLines((prev) => {
+        const i = prev.findIndex(
+          (l) =>
+            l.id === id &&
+            l.sockSize === sockSize &&
+            l.sockColor === sockColor,
+        );
+        if (i === -1) {
+          return [...prev, { id, quantity: qty, sockSize, sockColor }];
+        }
+        const next = [...prev];
+        next[i] = { ...next[i], quantity: next[i].quantity + qty };
+        return next;
+      });
+      setOpenCart(true);
+    },
+    [],
+  );
 
   const setQty = useCallback((lineKey: string, qty: number) => {
     setLines((prev) => {

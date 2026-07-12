@@ -10,6 +10,7 @@ import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import { formatMoney, getProduct } from "@/lib/products";
+import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
 import { cartLineKey, SOCK_SIZE_SHORT } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
@@ -109,7 +110,8 @@ export function CartDrawer() {
                         {p.name}
                       </p>
                       <p className="mt-1 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-                        Size {SOCK_SIZE_SHORT[line.sockSize]} · crew
+                        {SOCK_COLOR_LABEL[line.sockColor]} · size{" "}
+                        {SOCK_SIZE_SHORT[line.sockSize]} · crew
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {p.isSubscription
@@ -132,6 +134,7 @@ export function CartDrawer() {
                         posthog.capture("cart_item_quantity_changed", {
                           bundle_id: line.id,
                           sock_size: line.sockSize,
+                          sock_color: line.sockColor,
                           new_quantity: line.quantity - 1,
                           direction: "decrease",
                         });
@@ -153,6 +156,7 @@ export function CartDrawer() {
                         posthog.capture("cart_item_quantity_changed", {
                           bundle_id: line.id,
                           sock_size: line.sockSize,
+                          sock_color: line.sockColor,
                           new_quantity: line.quantity + 1,
                           direction: "increase",
                         });
@@ -171,6 +175,7 @@ export function CartDrawer() {
                         posthog.capture("cart_item_removed", {
                           bundle_id: line.id,
                           sock_size: line.sockSize,
+                          sock_color: line.sockColor,
                           quantity: line.quantity,
                         });
                       }}

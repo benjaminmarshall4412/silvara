@@ -43,7 +43,12 @@ export async function POST(request: Request) {
     // Stripe forbids `allow_promotion_codes` and `discounts` on the same session — use one or the other.
     const siteBase = envPublic.siteUrl.replace(/\/$/, "")
     const silvaraCartMeta = JSON.stringify(
-      lines.map((l) => ({ i: l.id, q: l.quantity, s: l.sockSize })),
+      lines.map((l) => ({
+        i: l.id,
+        q: l.quantity,
+        s: l.sockSize,
+        c: l.sockColor,
+      })),
     )
     const baseParams = {
       ui_mode: "embedded_page",
