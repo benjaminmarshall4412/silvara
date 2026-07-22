@@ -17,6 +17,7 @@ import {
   type SockColor,
 } from "@/lib/sock-colors";
 import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
+import { trackMetaEvent } from "@/lib/meta/track-client";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
@@ -147,7 +148,17 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
       region,
       bundle_id: "triple",
     });
-  }, [angle, region]);
+    void trackMetaEvent({
+      eventName: "ViewContent",
+      customData: {
+        content_ids: ["triple"],
+        content_type: "product",
+        content_name: "SILVARA 3-Pair Gift Set",
+        value: tripleCents / 100,
+        currency: currency.toUpperCase(),
+      },
+    });
+  }, [angle, region, tripleCents, currency]);
 
   useEffect(() => {
     const el = firstCtaRef.current;

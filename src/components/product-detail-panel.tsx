@@ -12,6 +12,7 @@ import {
   formatMoney,
   getProduct,
 } from "@/lib/products";
+import { trackMetaEvent } from "@/lib/meta/track-client";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { withSiteRegion } from "@/lib/site-region";
 import { useSiteRegion } from "@/lib/site-region-context";
@@ -38,6 +39,17 @@ export function ProductDetailPanel({ bundleId }: { bundleId: BundleId }) {
       product_name: p.name,
       is_subscription: p.isSubscription,
       region,
+    });
+    const cents = unitAmountCentsByBundle[bundleId] ?? p.priceCents;
+    void trackMetaEvent({
+      eventName: "ViewContent",
+      customData: {
+        content_ids: [bundleId],
+        content_type: "product",
+        content_name: p.name,
+        value: cents / 100,
+        currency: currency.toUpperCase(),
+      },
     });
   }, [bundleId]); // eslint-disable-line react-hooks/exhaustive-deps
 

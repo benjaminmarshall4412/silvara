@@ -5,12 +5,15 @@ import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
 import type { BundleId } from "@/lib/products";
+import { getProduct } from "@/lib/products";
+import { trackMetaEvent } from "@/lib/meta/track-client";
 import {
   DEFAULT_SOCK_COLOR,
   type SockColor,
 } from "@/lib/sock-colors";
 import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
 import type { SockSize } from "@/lib/sock-sizes";
+import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -33,6 +36,9 @@ export function AddToCartButton({
   variant = "primary",
 }: Props) {
   const { add } = useCart();
+  const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
+  const product = getProduct(id);
+  const unitCents = unitAmountCentsByBundle[id] ?? product?.priceCents ?? 0;
 
   return (
     <Button
@@ -54,6 +60,17 @@ export function AddToCartButton({
           label,
           sock_size: sockSize,
           sock_color: sockColor,
+        });
+        void trackMetaEvent({
+          eventName: "AddToCart",
+          customData: {
+            content_ids: [id],
+            content_type: "product",
+            content_name: product?.name,
+            value: unitCents / 100,
+            currency: currency.toUpperCase(),
+            num_items: 1,
+          },
         });
       }}
     >

@@ -16,6 +16,8 @@ import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { formatMoney, getProduct } from "@/lib/products";
 import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
+import { getMetaFbc, getMetaFbp } from "@/lib/meta/browser";
+import { trackMetaEvent } from "@/lib/meta/track-client";
 import { cartLineKey } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { withSiteRegion } from "@/lib/site-region";
@@ -71,7 +73,12 @@ export default function CheckoutPage() {
             "Content-Type": "application/json",
             "x-posthog-distinct-id": posthog.get_distinct_id(),
           },
-          body: JSON.stringify({ lines, region }),
+          body: JSON.stringify({
+            lines,
+            region,
+            fbp: getMetaFbp(),
+            fbc: getMetaFbc(),
+          }),
           signal,
         });
         const payload = await response.json();
@@ -90,6 +97,17 @@ export default function CheckoutPage() {
             : null,
         );
         setClientSecret(payload.clientSecret);
+
+        void trackMetaEvent({
+          eventName: "InitiateCheckout",
+          customData: {
+            content_ids: lines.map((l) => l.id),
+            content_type: "product",
+            value: subtotalCents / 100,
+            currency: currency.toUpperCase(),
+            num_items: lines.reduce((n, l) => n + l.quantity, 0),
+          },
+        });
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return;
         const message = error instanceof Error ? error.message : "Unable to start checkout";
@@ -98,7 +116,7 @@ export default function CheckoutPage() {
         setSessionError(message);
       }
     },
-    [lines, region],
+    [lines, region, subtotalCents, currency],
   );
 
   useEffect(() => {

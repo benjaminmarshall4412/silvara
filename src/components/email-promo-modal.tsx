@@ -173,7 +173,7 @@ export function EmailPromoModal() {
             <button
               type="button"
               onClick={() => dismiss()}
-              className="border-border text-muted-foreground hover:bg-muted hover:text-foreground flex h-10 min-w-10 shrink-0 items-center justify-center border-2 bg-transparent font-mono text-xl leading-none"
+              className="border-border text-muted-foreground hover:bg-muted hover:text-foreground flex h-10 min-w-10 shrink-0 cursor-pointer items-center justify-center border-2 bg-transparent font-mono text-xl leading-none"
               aria-label="Dismiss offer"
             >
               ×
@@ -188,7 +188,7 @@ export function EmailPromoModal() {
               <button
                 type="button"
                 onClick={() => dismiss(true)}
-                className="bg-primary text-primary-foreground border-border hover:opacity-90 w-full border-2 px-4 py-3 font-heading text-sm font-extrabold uppercase tracking-wide"
+                className="bg-primary text-primary-foreground border-border hover:opacity-90 w-full cursor-pointer border-2 px-4 py-3 font-heading text-sm font-extrabold uppercase tracking-wide"
               >
                 Got it
               </button>
@@ -217,7 +217,7 @@ export function EmailPromoModal() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="bg-accent text-accent-foreground border-border hover:bg-accent/90 disabled:opacity-50 border-2 px-4 py-3 font-heading text-sm font-extrabold uppercase tracking-wide"
+                className="bg-accent text-accent-foreground border-border hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border-2 px-4 py-3 font-heading text-sm font-extrabold uppercase tracking-wide"
               >
                 {status === "loading" ? "Saving…" : `Claim ${pct}% off`}
               </button>

@@ -50,6 +50,10 @@ export async function POST(request: Request) {
         c: l.sockColor,
       })),
     )
+    const metaFbp =
+      typeof body?.fbp === "string" ? body.fbp.trim().slice(0, 200) : ""
+    const metaFbc =
+      typeof body?.fbc === "string" ? body.fbc.trim().slice(0, 255) : ""
     const baseParams = {
       ui_mode: "embedded_page",
       mode,
@@ -60,6 +64,8 @@ export async function POST(request: Request) {
       metadata: {
         silvara_cart: silvaraCartMeta.slice(0, 500),
         silvara_region: region,
+        ...(metaFbp ? { meta_fbp: metaFbp } : {}),
+        ...(metaFbc ? { meta_fbc: metaFbc } : {}),
       },
       /** Physical fulfillment — collected by Stripe on the embedded Checkout page. */
       shipping_address_collection: {
