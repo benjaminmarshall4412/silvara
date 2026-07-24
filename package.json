@@ -12,7 +12,8 @@
     "stripe:sync-catalog:uk": "node --env-file=.env scripts/sync-stripe-catalog.mjs --region=uk",
     "stripe:create-email-promo-coupon": "node --env-file=.env scripts/create-stripe-email-promo-coupon.mjs --region=us",
     "stripe:create-email-promo-coupon:uk": "node --env-file=.env scripts/create-stripe-email-promo-coupon.mjs --region=uk",
-    "db:migrate": "prisma migrate deploy"
+    "db:migrate": "prisma migrate deploy",
+    "resend:sync-flows": "node --env-file=.env scripts/sync-resend-email-flows.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
