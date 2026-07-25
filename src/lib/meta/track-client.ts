@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  createMetaEventId,
-  getMetaFbc,
-  getMetaFbp,
-} from "@/lib/meta/browser";
+import { createMetaEventId } from "@/lib/meta/browser";
 import type { MetaCustomData, MetaStandardEvent } from "@/lib/meta/types";
 
 declare global {
@@ -16,24 +12,18 @@ declare global {
 
 type TrackArgs = {
   eventName: MetaStandardEvent;
-  /** Stable id for Pixel + CAPI dedupe. Generated if omitted. */
+  /** Optional stable id for the Pixel event. Generated if omitted. */
   eventId?: string;
   customData?: MetaCustomData;
-  email?: string | null;
 };
 
-/**
- * Fire Meta Pixel (browser) + Conversions API (server) with the same event_id.
- */
+/** Fire Meta Pixel standard events in the browser. */
 export async function trackMetaEvent({
   eventName,
   eventId: eventIdArg,
   customData,
-  email,
 }: TrackArgs): Promise<string> {
   const eventId = eventIdArg ?? createMetaEventId();
-  const eventSourceUrl =
-    typeof window !== "undefined" ? window.location.href : undefined;
 
   if (typeof window !== "undefined" && typeof window.fbq === "function") {
     const pixelPayload: Record<string, unknown> = {};
@@ -46,25 +36,6 @@ export async function trackMetaEvent({
     if (customData?.order_id) pixelPayload.order_id = customData.order_id;
 
     window.fbq("track", eventName, pixelPayload, { eventID: eventId });
-  }
-
-  try {
-    await fetch("/api/meta/capi", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        eventName,
-        eventId,
-        eventSourceUrl,
-        customData,
-        email: email ?? undefined,
-        fbp: getMetaFbp() ?? undefined,
-        fbc: getMetaFbc() ?? undefined,
-      }),
-      keepalive: true,
-    });
-  } catch {
-    // Non-blocking — ads still work if CAPI is down
   }
 
   return eventId;

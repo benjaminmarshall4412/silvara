@@ -16,7 +16,6 @@ import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { formatMoney, getProduct } from "@/lib/products";
 import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
-import { getMetaFbc, getMetaFbp } from "@/lib/meta/browser";
 import { trackMetaEvent } from "@/lib/meta/track-client";
 import { cartLineKey } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
@@ -76,8 +75,6 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             lines,
             region,
-            fbp: getMetaFbp(),
-            fbc: getMetaFbc(),
           }),
           signal,
         });

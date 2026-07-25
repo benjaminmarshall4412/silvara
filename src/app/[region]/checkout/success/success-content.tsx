@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import { envPublic } from "@/lib/env.public";
 import { gtagReportConversion } from "@/lib/gtag";
+import { trackMetaEvent } from "@/lib/meta/track-client";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 
@@ -61,22 +62,34 @@ export function SuccessContent() {
           if (payload.customerEmail) {
             posthog.identify(payload.customerEmail, { email: payload.customerEmail });
           }
-          const sendTo = envPublic.googleAdsPurchaseSendTo.trim();
           if (
             !conversionLogged.current &&
-            payload.paymentStatus === "paid" &&
-            sendTo
+            payload.paymentStatus === "paid"
           ) {
             conversionLogged.current = true;
             const value =
               typeof payload.amountTotal === "number"
                 ? payload.amountTotal / 100
                 : undefined;
-            gtagReportConversion(sendTo, {
-              value,
-              currency: payload.currency?.toUpperCase() ?? undefined,
-              transactionId: sessionIdParam,
+            const currency = payload.currency?.toUpperCase() ?? undefined;
+            void trackMetaEvent({
+              eventName: "Purchase",
+              eventId: sessionIdParam,
+              customData: {
+                value,
+                currency,
+                content_type: "product",
+                order_id: sessionIdParam,
+              },
             });
+            const sendTo = envPublic.googleAdsPurchaseSendTo.trim();
+            if (sendTo) {
+              gtagReportConversion(sendTo, {
+                value,
+                currency,
+                transactionId: sessionIdParam,
+              });
+            }
           }
         }
       } catch (error) {

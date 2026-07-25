@@ -20,7 +20,7 @@ export const envPublic = {
    * Optional if you only use URL-based conversion on /checkout/success.
    */
   googleAdsPurchaseSendTo: process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO ?? "",
-  /** Meta Pixel / dataset ID for browser Pixel + CAPI. Leave empty to disable. */
+  /** Meta Pixel ID. Leave empty to disable. */
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "",
 };
 

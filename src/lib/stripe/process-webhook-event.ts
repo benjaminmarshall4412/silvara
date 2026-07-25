@@ -2,23 +2,9 @@ import type Stripe from "stripe";
 
 import { getPostHogClient } from "@/lib/posthog-server";
 import { recordFirstOrderIfNeeded } from "@/lib/email-signup-db";
-import { sendMetaCapiEvents } from "@/lib/meta/capi";
 import { SILVARA_RESEND_EVENTS } from "@/lib/resend-automation-events";
 import { sendResendAutomationEvent } from "@/lib/send-resend-automation-event";
 import { isSiteRegion } from "@/lib/site-region";
-
-function splitName(full: string | null | undefined): {
-  firstName?: string;
-  lastName?: string;
-} {
-  if (!full?.trim()) return {};
-  const parts = full.trim().split(/\s+/);
-  if (parts.length === 1) return { firstName: parts[0] };
-  return {
-    firstName: parts[0],
-    lastName: parts.slice(1).join(" "),
-  };
-}
 
 /** Shared handler after signature verification — keep logic in one place for US + UK endpoints. */
 export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> {
@@ -55,52 +41,6 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
           shipping_state: addr?.state ?? null,
         },
       });
-
-      const { firstName, lastName } = splitName(session.customer_details?.name);
-      const metaFbp = session.metadata?.meta_fbp?.trim() || undefined;
-      const metaFbc = session.metadata?.meta_fbc?.trim() || undefined;
-      let contentIds: string[] | undefined;
-      try {
-        const cartRaw = session.metadata?.silvara_cart;
-        if (cartRaw) {
-          const parsed = JSON.parse(cartRaw) as Array<{ i?: string }>;
-          contentIds = parsed
-            .map((row) => row.i)
-            .filter((id): id is string => typeof id === "string");
-        }
-      } catch {
-        contentIds = undefined;
-      }
-
-      await sendMetaCapiEvents([
-        {
-          eventName: "Purchase",
-          eventId: session.id,
-          eventSourceUrl: undefined,
-          userData: {
-            email: session.customer_details?.email,
-            phone: session.customer_details?.phone,
-            firstName,
-            lastName,
-            country: addr?.country,
-            state: addr?.state,
-            zip: addr?.postal_code,
-            city: addr?.city,
-            fbp: metaFbp,
-            fbc: metaFbc,
-          },
-          customData: {
-            value:
-              typeof session.amount_total === "number"
-                ? session.amount_total / 100
-                : undefined,
-            currency: session.currency?.toUpperCase(),
-            content_ids: contentIds,
-            content_type: "product",
-            order_id: session.id,
-          },
-        },
-      ]);
 
       if (session.customer_details?.email) {
         posthog.identify({
