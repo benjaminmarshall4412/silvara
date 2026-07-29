@@ -216,6 +216,12 @@ export function AdminOrders() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link
+              href="/admin/finance"
+              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
+            >
+              Financials
+            </Link>
+            <Link
               href="/admin"
               className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
             >

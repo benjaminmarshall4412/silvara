@@ -331,6 +331,15 @@ export function AdminDashboard() {
             >
               Orders
             </Link>
+            <Link
+              href="/admin/finance"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-none border-2 border-foreground no-underline",
+              )}
+            >
+              Financials
+            </Link>
             <a
               href={phUrl}
               target="_blank"

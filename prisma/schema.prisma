@@ -42,3 +42,20 @@ model OrderFulfillment {
   @@index([packedAt])
   @@index([region])
 }
+
+/// Manual cost rows for the admin financials spreadsheet (ads, shipping, socks, …).
+model FinanceEntry {
+  id          String   @id @default(cuid())
+  /// Calendar day the cost applies to (UTC date at midnight).
+  date        DateTime @db.Date
+  /// ads | shipping | socks | other
+  category    String   @db.VarChar(32)
+  amountCents Int
+  currency    String   @default("usd") @db.VarChar(3)
+  note        String?  @db.VarChar(500)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date])
+  @@index([category])
+}
