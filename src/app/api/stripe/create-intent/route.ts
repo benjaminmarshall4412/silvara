@@ -56,6 +56,8 @@ export async function POST(request: Request) {
       line_items,
       return_url: `${siteBase}/${region}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       billing_address_collection: "auto" as const,
+      /** Ask for a contact number on Checkout (shows in admin orders). */
+      phone_number_collection: { enabled: true },
       /** Fulfillment: sizes per line (Stripe metadata max 500 chars — keep cart small). */
       metadata: {
         silvara_cart: silvaraCartMeta.slice(0, 500),

@@ -20,6 +20,16 @@ type SessionStatus = {
   currency: string | null;
 };
 
+function isOrderComplete(payload: SessionStatus): boolean {
+  // Klarna/async: session is often `complete` before payment_status flips to `paid`.
+  // Fire Purchase on complete so Meta still gets the conversion / audience signal.
+  return (
+    payload.status === "complete" ||
+    payload.paymentStatus === "paid" ||
+    payload.paymentStatus === "no_payment_required"
+  );
+}
+
 export function SuccessContent() {
   const region = useSiteRegion();
   const loadouts = withSiteRegion(region, "/#loadouts");
@@ -29,6 +39,7 @@ export function SuccessContent() {
   const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const conversionLogged = useRef(false);
+  const posthogLogged = useRef(false);
 
   useEffect(() => {
     clear();
@@ -39,20 +50,58 @@ export function SuccessContent() {
     const sessionIdParam = sessionId;
 
     let canceled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    async function loadStatus() {
+    function fireConversions(payload: SessionStatus) {
+      if (conversionLogged.current || !isOrderComplete(payload)) {
+        return;
+      }
+      conversionLogged.current = true;
+      const value =
+        typeof payload.amountTotal === "number"
+          ? payload.amountTotal / 100
+          : undefined;
+      const currency = payload.currency?.toUpperCase() ?? undefined;
+      void trackMetaEvent({
+        eventName: "Purchase",
+        eventId: sessionIdParam,
+        customData: {
+          value,
+          currency,
+          content_type: "product",
+          order_id: sessionIdParam,
+        },
+      });
+      const sendTo = envPublic.googleAdsPurchaseSendTo.trim();
+      if (sendTo) {
+        gtagReportConversion(sendTo, {
+          value,
+          currency,
+          transactionId: sessionIdParam,
+        });
+      }
+    }
+
+    async function loadStatus(attempt: number) {
       try {
         const response = await fetch(
           `/api/stripe/session-status?session_id=${encodeURIComponent(sessionIdParam)}&region=${encodeURIComponent(region)}`,
         );
-        const payload = await response.json();
+        const payload = (await response.json()) as SessionStatus & {
+          error?: string;
+        };
 
         if (!response.ok) {
           throw new Error(payload?.error ?? "Unable to load payment status");
         }
 
-        if (!canceled) {
-          setSessionStatus(payload);
+        if (canceled) return;
+
+        setSessionStatus(payload);
+        setErrorMessage(null);
+
+        if (!posthogLogged.current) {
+          posthogLogged.current = true;
           posthog.capture("order_confirmed", {
             session_id: sessionIdParam,
             payment_status: payload.paymentStatus,
@@ -60,53 +109,50 @@ export function SuccessContent() {
             region,
           });
           if (payload.customerEmail) {
-            posthog.identify(payload.customerEmail, { email: payload.customerEmail });
-          }
-          if (
-            !conversionLogged.current &&
-            payload.paymentStatus === "paid"
-          ) {
-            conversionLogged.current = true;
-            const value =
-              typeof payload.amountTotal === "number"
-                ? payload.amountTotal / 100
-                : undefined;
-            const currency = payload.currency?.toUpperCase() ?? undefined;
-            void trackMetaEvent({
-              eventName: "Purchase",
-              eventId: sessionIdParam,
-              customData: {
-                value,
-                currency,
-                content_type: "product",
-                order_id: sessionIdParam,
-              },
+            posthog.identify(payload.customerEmail, {
+              email: payload.customerEmail,
             });
-            const sendTo = envPublic.googleAdsPurchaseSendTo.trim();
-            if (sendTo) {
-              gtagReportConversion(sendTo, {
-                value,
-                currency,
-                transactionId: sessionIdParam,
-              });
-            }
           }
         }
+
+        if (isOrderComplete(payload)) {
+          fireConversions(payload);
+          return;
+        }
+
+        // Still open / pending — poll briefly (rare; usually complete on return_url).
+        if (attempt < 24) {
+          const delayMs = attempt < 6 ? 1500 : 3000;
+          timeoutId = setTimeout(() => {
+            void loadStatus(attempt + 1);
+          }, delayMs);
+        }
       } catch (error) {
-        if (!canceled) {
-          setErrorMessage(
-            error instanceof Error ? error.message : "Unable to load payment status",
-          );
+        if (canceled) return;
+        setErrorMessage(
+          error instanceof Error ? error.message : "Unable to load payment status",
+        );
+        if (attempt < 8) {
+          timeoutId = setTimeout(() => {
+            void loadStatus(attempt + 1);
+          }, 2000);
         }
       }
     }
 
-    void loadStatus();
+    void loadStatus(0);
 
     return () => {
       canceled = true;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [sessionId, region]);
+
+  const awaitingPayment =
+    sessionStatus != null &&
+    sessionStatus.status === "complete" &&
+    sessionStatus.paymentStatus !== "paid" &&
+    sessionStatus.paymentStatus !== "no_payment_required";
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 md:py-20">
@@ -135,6 +181,12 @@ export function SuccessContent() {
           {sessionStatus.customerEmail ? (
             <p className="text-sm">
               Receipt: <strong>{sessionStatus.customerEmail}</strong>
+            </p>
+          ) : null}
+          {awaitingPayment ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Payment provider is still confirming (common with Klarna). Your
+              order is in — we&apos;ll fulfill when it clears.
             </p>
           ) : null}
         </div>

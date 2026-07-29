@@ -2,9 +2,47 @@ import type Stripe from "stripe";
 
 import { getPostHogClient } from "@/lib/posthog-server";
 import { recordFirstOrderIfNeeded } from "@/lib/email-signup-db";
+import { formatAddressLines, parseSilvaraCartMetadata } from "@/lib/order-cart";
+import { notifyNtfy } from "@/lib/ntfy";
 import { SILVARA_RESEND_EVENTS } from "@/lib/resend-automation-events";
+import { sendOrderConfirmationEmail } from "@/lib/send-order-confirmation-email";
 import { sendResendAutomationEvent } from "@/lib/send-resend-automation-event";
+import { formatMoney } from "@/lib/products";
 import { isSiteRegion } from "@/lib/site-region";
+
+type SessionWithShipping = Stripe.Checkout.Session & {
+  shipping_details?: {
+    name?: string | null;
+    address?: Stripe.Address | null;
+  } | null;
+  collected_information?: {
+    shipping_details?: {
+      name?: string | null;
+      address?: Stripe.Address | null;
+    } | null;
+  } | null;
+};
+
+function shippingFromSession(session: SessionWithShipping) {
+  const collected = session.collected_information?.shipping_details;
+  const legacy = session.shipping_details;
+  return {
+    name: collected?.name ?? legacy?.name ?? null,
+    address: collected?.address ?? legacy?.address ?? null,
+  };
+}
+
+function mapAddr(addr: Stripe.Address | null | undefined) {
+  if (!addr) return null;
+  return {
+    line1: addr.line1 ?? null,
+    line2: addr.line2 ?? null,
+    city: addr.city ?? null,
+    state: addr.state ?? null,
+    postalCode: addr.postal_code ?? null,
+    country: addr.country ?? null,
+  };
+}
 
 /** Shared handler after signature verification — keep logic in one place for US + UK endpoints. */
 export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> {
@@ -20,13 +58,22 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
         customerEmail: session.customer_details?.email,
       });
       const distinctId = session.customer_details?.email ?? session.id;
-      const extended = session as Stripe.Checkout.Session & {
-        shipping_details?: { address?: Stripe.Address | null } | null;
-      };
-      const addr =
-        session.customer_details?.address ?? extended.shipping_details?.address ?? null;
+      const extended = session as SessionWithShipping;
+      const shipping = shippingFromSession(extended);
+      const shipAddr = mapAddr(shipping.address);
+      const billAddr = mapAddr(session.customer_details?.address);
+      const addr = shipAddr ?? billAddr;
       const discountCents =
         session.total_details?.amount_discount ?? undefined;
+      const lines = parseSilvaraCartMetadata(session.metadata?.silvara_cart);
+      const rawRegion = session.metadata?.silvara_region;
+      const region = isSiteRegion(rawRegion) ? rawRegion : null;
+      const currency = session.currency?.toUpperCase() ?? "USD";
+      const totalLabel =
+        session.amount_total != null
+          ? formatMoney(session.amount_total, currency)
+          : "—";
+
       posthog.capture({
         distinctId,
         event: "order_completed",
@@ -42,14 +89,61 @@ export async function logStripeWebhookEvent(event: Stripe.Event): Promise<void> 
         },
       });
 
+      const itemSummary =
+        lines.length > 0
+          ? lines
+              .map(
+                (l) =>
+                  `${l.quantity}× ${l.name} (${l.sockColorLabel})`,
+              )
+              .join(", ")
+          : "see Stripe session";
+      const shipLines = formatAddressLines(addr);
+      const ntfyBody = [
+        `${session.customer_details?.name?.trim() || "Customer"} · ${totalLabel}`,
+        session.customer_details?.email ?? "",
+        session.customer_details?.phone
+          ? `Phone: ${session.customer_details.phone}`
+          : "",
+        itemSummary,
+        shipLines.length
+          ? `Ship: ${[shipping.name, ...shipLines].filter(Boolean).join(", ")}`
+          : "",
+        `${(region ?? "?").toUpperCase()} · ${session.id}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      await notifyNtfy({
+        title: `SILVARA order ${totalLabel}`,
+        message: ntfyBody,
+        priority: 4,
+        tags: ["package", "silvara"],
+      });
+
       if (session.customer_details?.email) {
         posthog.identify({
           distinctId: session.customer_details.email,
           properties: { email: session.customer_details.email },
         });
 
-        const rawRegion = session.metadata?.silvara_region;
-        const region = isSiteRegion(rawRegion) ? rawRegion : null;
+        await sendOrderConfirmationEmail({
+          to: session.customer_details.email,
+          customerName: session.customer_details.name,
+          amountTotal: session.amount_total,
+          currency: session.currency,
+          sessionId: session.id,
+          lines: lines.map((l) => ({
+            name: l.name,
+            quantity: l.quantity,
+            colorLabel: l.sockColorLabel,
+          })),
+          shippingLines: [
+            ...(shipping.name ? [shipping.name] : []),
+            ...shipLines,
+          ],
+        });
+
         const { shouldSendOrderAutomation } = await recordFirstOrderIfNeeded({
           email: session.customer_details.email,
           region,

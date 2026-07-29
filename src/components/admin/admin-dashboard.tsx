@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -321,6 +322,15 @@ export function AdminDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/admin/orders"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "rounded-none border-2 border-foreground no-underline",
+              )}
+            >
+              Orders
+            </Link>
             <a
               href={phUrl}
               target="_blank"

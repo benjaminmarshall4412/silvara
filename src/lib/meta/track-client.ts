@@ -17,6 +17,17 @@ type TrackArgs = {
   customData?: MetaCustomData;
 };
 
+async function waitForFbq(timeoutMs = 8000): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  if (typeof window.fbq === "function") return true;
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    await new Promise((r) => setTimeout(r, 100));
+    if (typeof window.fbq === "function") return true;
+  }
+  return typeof window.fbq === "function";
+}
+
 /** Fire Meta Pixel standard events in the browser. */
 export async function trackMetaEvent({
   eventName,
@@ -24,8 +35,9 @@ export async function trackMetaEvent({
   customData,
 }: TrackArgs): Promise<string> {
   const eventId = eventIdArg ?? createMetaEventId();
+  const ready = await waitForFbq();
 
-  if (typeof window !== "undefined" && typeof window.fbq === "function") {
+  if (ready && typeof window.fbq === "function") {
     const pixelPayload: Record<string, unknown> = {};
     if (customData?.value != null) pixelPayload.value = customData.value;
     if (customData?.currency) pixelPayload.currency = customData.currency;
