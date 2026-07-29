@@ -22,6 +22,43 @@ function shippingAllowedCountries(region: SiteRegion): string[] {
   return region === "uk" ? ["GB"] : ["US"]
 }
 
+/**
+ * Where Stripe should send the buyer after pay — must match the storefront they used.
+ * Prefer the request Origin/Host so a bad NEXT_PUBLIC_SITE_URL (e.g. localhost baked
+ * into a production build) cannot strand live customers on localhost.
+ */
+function resolveCheckoutSiteBase(request: Request): string {
+  const origin = request.headers.get("origin")?.trim()
+  if (origin && /^https?:\/\//i.test(origin)) {
+    try {
+      return new URL(origin).origin
+    } catch {
+      /* fall through */
+    }
+  }
+
+  const forwardedHost = request.headers
+    .get("x-forwarded-host")
+    ?.split(",")[0]
+    ?.trim()
+  const host =
+    forwardedHost || request.headers.get("host")?.trim() || ""
+  if (host) {
+    const proto =
+      request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+      (host.startsWith("localhost") || host.startsWith("127.0.0.1")
+        ? "http"
+        : "https")
+    return `${proto}://${host}`.replace(/\/$/, "")
+  }
+
+  const fromEnv = envPublic.siteUrl.replace(/\/$/, "")
+  if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) {
+    return fromEnv
+  }
+  return "https://silvara.org"
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -41,7 +78,7 @@ export async function POST(request: Request) {
 
     // `payment_method_collection` is invalid for pure one-time carts (Stripe 2026+).
     // Stripe forbids `allow_promotion_codes` and `discounts` on the same session — use one or the other.
-    const siteBase = envPublic.siteUrl.replace(/\/$/, "")
+    const siteBase = resolveCheckoutSiteBase(request)
     const silvaraCartMeta = JSON.stringify(
       lines.map((l) => ({
         i: l.id,
