@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   FINANCE_CATEGORIES,
@@ -10,6 +10,14 @@ import {
   type FinanceEntryRow,
   type RevenueByCurrency,
 } from "@/lib/admin-finance-types";
+import {
+  adminBtn,
+  adminBtnGhost,
+  adminBtnPrimary,
+  adminInput,
+  adminLink,
+  adminSelect,
+} from "@/lib/admin-ui";
 import { formatMoney } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -50,19 +58,24 @@ export function AdminFinance() {
   const [data, setData] = useState<Snapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const hasDataRef = useRef(false);
 
   const [draftDate, setDraftDate] = useState(() => todayStr());
   const [draftCategory, setDraftCategory] = useState<FinanceCategory>("ads");
   const [draftAmount, setDraftAmount] = useState("");
   const [draftNote, setDraftNote] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (range?: { from: string; to: string }) => {
+    const f = range?.from ?? from;
+    const t = range?.to ?? to;
+    if (hasDataRef.current) setRefreshing(true);
+    else setLoading(true);
     setError(null);
     try {
-      const qs = new URLSearchParams({ from, to });
+      const qs = new URLSearchParams({ from: f, to: t });
       const res = await fetch(`/api/admin/finance?${qs}`, {
         credentials: "include",
       });
@@ -76,10 +89,12 @@ export function AdminFinance() {
         return;
       }
       setData(json);
+      hasDataRef.current = true;
     } catch {
       setError("Network error loading financials.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [from, to]);
 
@@ -100,6 +115,32 @@ export function AdminFinance() {
     }
     setSaving(true);
     setToast(null);
+    const optimistic: FinanceEntryRow = {
+      id: `tmp_${Date.now()}`,
+      date: draftDate,
+      category: draftCategory,
+      amountCents: Math.round(dollars * 100),
+      currency: "usd",
+      note: draftNote.trim() || null,
+    };
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            entries: [optimistic, ...prev.entries],
+            costsByCategory: {
+              ...prev.costsByCategory,
+              [optimistic.category]:
+                (prev.costsByCategory[optimistic.category] ?? 0) +
+                optimistic.amountCents,
+            },
+            costsTotalCents: prev.costsTotalCents + optimistic.amountCents,
+            profitUsdCents: prev.profitUsdCents - optimistic.amountCents,
+          }
+        : prev,
+    );
+    setDraftAmount("");
+    setDraftNote("");
     try {
       const res = await fetch("/api/admin/finance", {
         method: "POST",
@@ -109,19 +150,19 @@ export function AdminFinance() {
           date: draftDate,
           category: draftCategory,
           amountDollars: dollars,
-          note: draftNote.trim() || null,
+          note: optimistic.note,
         }),
       });
       const json = (await res.json()) as { error?: string };
       if (!res.ok) {
         setToast(json.error ?? "Could not add row");
+        await load();
         return;
       }
-      setDraftAmount("");
-      setDraftNote("");
       await load();
     } catch {
       setToast("Network error adding row");
+      await load();
     } finally {
       setSaving(false);
     }
@@ -129,7 +170,34 @@ export function AdminFinance() {
 
   const removeRow = async (id: string) => {
     if (!confirm("Delete this cost row?")) return;
+    const removed = data?.entries.find((e) => e.id === id);
     setSaving(true);
+    if (removed) {
+      setData((prev) => {
+        if (!prev) return prev;
+        const usd = removed.currency === "usd";
+        return {
+          ...prev,
+          entries: prev.entries.filter((e) => e.id !== id),
+          costsByCategory: usd
+            ? {
+                ...prev.costsByCategory,
+                [removed.category]: Math.max(
+                  0,
+                  (prev.costsByCategory[removed.category] ?? 0) -
+                    removed.amountCents,
+                ),
+              }
+            : prev.costsByCategory,
+          costsTotalCents: usd
+            ? Math.max(0, prev.costsTotalCents - removed.amountCents)
+            : prev.costsTotalCents,
+          profitUsdCents: usd
+            ? prev.profitUsdCents + removed.amountCents
+            : prev.profitUsdCents,
+        };
+      });
+    }
     try {
       const res = await fetch(
         `/api/admin/finance?id=${encodeURIComponent(id)}`,
@@ -138,11 +206,12 @@ export function AdminFinance() {
       if (!res.ok) {
         const json = (await res.json()) as { error?: string };
         setToast(json.error ?? "Delete failed");
+        await load();
         return;
       }
-      await load();
     } catch {
       setToast("Network error deleting row");
+      await load();
     } finally {
       setSaving(false);
     }
@@ -153,8 +222,11 @@ export function AdminFinance() {
     [data?.revenue],
   );
 
+  const usdOrderCount =
+    data?.revenue.find((r) => r.currency === "usd")?.orderCount ?? 0;
+
   return (
-    <div className="min-h-screen bg-zinc-100 text-zinc-900">
+    <div className="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
       <div className="mx-auto max-w-5xl px-4 py-6 md:px-6">
         <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -167,59 +239,49 @@ export function AdminFinance() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/admin/orders"
-              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-            >
+            <Link href="/admin/orders" className={adminLink}>
               Orders
             </Link>
-            <Link
-              href="/admin"
-              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-            >
+            <Link href="/admin" className={adminLink}>
               Analytics
             </Link>
             <button
               type="button"
               onClick={() => void load()}
-              disabled={loading}
-              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              disabled={loading || refreshing}
+              className={adminBtn}
             >
-              Refresh
+              {refreshing ? "Refreshing…" : "Refresh"}
             </button>
-            <button
-              type="button"
-              onClick={() => void logout()}
-              className="rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:text-zinc-800"
-            >
+            <button type="button" onClick={() => void logout()} className={adminBtnGhost}>
               Sign out
             </button>
           </div>
         </header>
 
         <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-zinc-200 bg-white p-3">
-          <label className="text-sm">
+          <label className="cursor-pointer text-sm">
             <span className="mb-1 block text-xs text-zinc-500">From</span>
             <input
               type="date"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
-              className="rounded border border-zinc-300 px-2 py-1.5 text-sm"
+              className={cn(adminInput, "cursor-pointer")}
             />
           </label>
-          <label className="text-sm">
+          <label className="cursor-pointer text-sm">
             <span className="mb-1 block text-xs text-zinc-500">To</span>
             <input
               type="date"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              className="rounded border border-zinc-300 px-2 py-1.5 text-sm"
+              className={cn(adminInput, "cursor-pointer")}
             />
           </label>
           <button
             type="button"
-            onClick={() => void load()}
-            className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white hover:bg-zinc-800"
+            onClick={() => void load({ from, to })}
+            className={adminBtnPrimary}
           >
             Apply
           </button>
@@ -246,16 +308,17 @@ export function AdminFinance() {
         ) : null}
 
         {data ? (
-          <>
+          <div
+            className={cn(
+              "transition-opacity",
+              refreshing && "opacity-70",
+            )}
+          >
             <div className="mb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <SummaryCard
                 label="Revenue (USD)"
                 value={formatMoney(data.revenueUsdCents, "usd")}
-                sub={
-                  data.revenue.find((r) => r.currency === "usd")
-                    ? `${data.revenue.find((r) => r.currency === "usd")!.orderCount} orders`
-                    : "0 orders"
-                }
+                sub={`${usdOrderCount} orders`}
               />
               <SummaryCard
                 label="Ads"
@@ -299,23 +362,23 @@ export function AdminFinance() {
               </div>
 
               <div className="grid grid-cols-1 gap-2 border-b border-zinc-100 bg-zinc-50 px-3 py-2 md:grid-cols-[8rem_9rem_7rem_minmax(0,1fr)_5rem] md:items-end">
-                <label className="text-xs">
+                <label className="cursor-pointer text-xs">
                   <span className="mb-1 block text-zinc-500">Date</span>
                   <input
                     type="date"
                     value={draftDate}
                     onChange={(e) => setDraftDate(e.target.value)}
-                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm"
+                    className={cn(adminInput, "cursor-pointer")}
                   />
                 </label>
-                <label className="text-xs">
+                <label className="cursor-pointer text-xs">
                   <span className="mb-1 block text-zinc-500">Category</span>
                   <select
                     value={draftCategory}
                     onChange={(e) =>
                       setDraftCategory(e.target.value as FinanceCategory)
                     }
-                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm"
+                    className={adminSelect}
                   >
                     {FINANCE_CATEGORIES.map((c) => (
                       <option key={c} value={c}>
@@ -333,7 +396,10 @@ export function AdminFinance() {
                     placeholder="0.00"
                     value={draftAmount}
                     onChange={(e) => setDraftAmount(e.target.value)}
-                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void addRow();
+                    }}
+                    className={adminInput}
                   />
                 </label>
                 <label className="text-xs">
@@ -343,14 +409,17 @@ export function AdminFinance() {
                     placeholder="Meta Jul 28, USPS label…"
                     value={draftNote}
                     onChange={(e) => setDraftNote(e.target.value)}
-                    className="w-full rounded border border-zinc-300 bg-white px-2 py-1.5 text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void addRow();
+                    }}
+                    className={adminInput}
                   />
                 </label>
                 <button
                   type="button"
                   disabled={saving}
                   onClick={() => void addRow()}
-                  className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white hover:bg-zinc-800 disabled:opacity-50"
+                  className={adminBtnPrimary}
                 >
                   Add
                 </button>
@@ -392,9 +461,9 @@ export function AdminFinance() {
                       </span>
                       <button
                         type="button"
-                        disabled={saving}
+                        disabled={saving || row.id.startsWith("tmp_")}
                         onClick={() => void removeRow(row.id)}
-                        className="justify-self-start text-xs text-red-600 hover:underline md:justify-self-end"
+                        className="cursor-pointer justify-self-start text-xs text-red-600 transition-colors hover:text-red-800 hover:underline disabled:cursor-not-allowed disabled:opacity-40 md:justify-self-end"
                       >
                         Del
                       </button>
@@ -403,7 +472,7 @@ export function AdminFinance() {
                 </ul>
               )}
             </section>
-          </>
+          </div>
         ) : null}
       </div>
     </div>

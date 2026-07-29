@@ -2,9 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 
 import type { AdminOrder, AdminOrderAddress } from "@/lib/admin-orders-types";
+import {
+  adminBtn,
+  adminBtnGhost,
+  adminCheck,
+  adminChip,
+  adminChipOff,
+  adminChipOn,
+  adminLink,
+  adminRowBtn,
+} from "@/lib/admin-ui";
 import { formatMoney } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -45,10 +55,7 @@ function formatAddressOneLine(addr: AdminOrderAddress | null | undefined): strin
 function itemsSummary(order: AdminOrder): string {
   if (order.lines.length > 0) {
     return order.lines
-      .map(
-        (l) =>
-          `${l.quantity}× ${l.name} · ${l.sockColorLabel}`,
-      )
+      .map((l) => `${l.quantity}× ${l.name} · ${l.sockColorLabel}`)
       .join("; ");
   }
   if (order.stripeLineItems.length > 0) {
@@ -64,16 +71,20 @@ export function AdminOrders() {
   const [data, setData] = useState<OrdersPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<Filter>("unpacked");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [labelBusyId, setLabelBusyId] = useState<string | null>(null);
   const [packedBusyId, setPackedBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [, startFilterTransition] = useTransition();
 
   const labelsReady = data?.shippingLabelsConfigured === true;
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { soft?: boolean }) => {
+    const soft = Boolean(opts?.soft);
+    if (soft) setRefreshing(true);
+    else setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/orders", { credentials: "include" });
@@ -91,6 +102,7 @@ export function AdminOrders() {
       setError("Network error loading orders.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -112,14 +124,29 @@ export function AdminOrders() {
 
   const counts = useMemo(() => {
     const orders = data?.orders ?? [];
+    let packed = 0;
+    for (const o of orders) if (o.packedAt) packed += 1;
     return {
       all: orders.length,
-      packed: orders.filter((o) => o.packedAt).length,
-      unpacked: orders.filter((o) => !o.packedAt).length,
+      packed,
+      unpacked: orders.length - packed,
     };
   }, [data?.orders]);
 
   const setPacked = async (order: AdminOrder, packed: boolean) => {
+    const prevPackedAt = order.packedAt;
+    // Optimistic UI — feels instant
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        orders: prev.orders.map((o) =>
+          o.id === order.id
+            ? { ...o, packedAt: packed ? new Date().toISOString() : null }
+            : o,
+        ),
+      };
+    });
     setPackedBusyId(order.id);
     setToast(null);
     try {
@@ -138,6 +165,15 @@ export function AdminOrders() {
         error?: string;
       };
       if (!res.ok) {
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            orders: prev.orders.map((o) =>
+              o.id === order.id ? { ...o, packedAt: prevPackedAt } : o,
+            ),
+          };
+        });
         setToast(json.error ?? "Could not update packed status");
         return;
       }
@@ -151,6 +187,15 @@ export function AdminOrders() {
         };
       });
     } catch {
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          orders: prev.orders.map((o) =>
+            o.id === order.id ? { ...o, packedAt: prevPackedAt } : o,
+          ),
+        };
+      });
       setToast("Network error updating packed status");
     } finally {
       setPackedBusyId(null);
@@ -205,7 +250,7 @@ export function AdminOrders() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-100 text-zinc-900">
+    <div className="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
         <header className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -215,31 +260,21 @@ export function AdminOrders() {
             <h1 className="text-xl font-semibold tracking-tight">Orders</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/admin/finance"
-              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-            >
+            <Link href="/admin/finance" className={adminLink}>
               Financials
             </Link>
-            <Link
-              href="/admin"
-              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50"
-            >
+            <Link href="/admin" className={adminLink}>
               Analytics
             </Link>
             <button
               type="button"
-              onClick={() => void load()}
-              disabled={loading}
-              className="rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
+              onClick={() => void load({ soft: true })}
+              disabled={loading || refreshing}
+              className={adminBtn}
             >
-              Refresh
+              {refreshing ? "Refreshing…" : "Refresh"}
             </button>
-            <button
-              type="button"
-              onClick={() => void logout()}
-              className="rounded-md px-3 py-1.5 text-sm text-zinc-500 hover:text-zinc-800"
-            >
+            <button type="button" onClick={() => void logout()} className={adminBtnGhost}>
               Sign out
             </button>
           </div>
@@ -256,12 +291,10 @@ export function AdminOrders() {
             <button
               key={key}
               type="button"
-              onClick={() => setFilter(key)}
+              onClick={() => startFilterTransition(() => setFilter(key))}
               className={cn(
-                "rounded-full px-3 py-1 text-sm",
-                filter === key
-                  ? "bg-zinc-900 text-white"
-                  : "bg-white text-zinc-600 ring-1 ring-zinc-200 hover:bg-zinc-50",
+                adminChip,
+                filter === key ? adminChipOn : adminChipOff,
               )}
             >
               {label}
@@ -307,7 +340,12 @@ export function AdminOrders() {
         ) : null}
 
         {filtered.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm">
+          <div
+            className={cn(
+              "overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-sm transition-opacity",
+              refreshing && "opacity-70",
+            )}
+          >
             <div className="hidden grid-cols-[2.5rem_7rem_minmax(0,1fr)_minmax(0,1.2fr)_5.5rem_6.5rem] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500 md:grid">
               <span>Pack</span>
               <span>When</span>
@@ -320,29 +358,36 @@ export function AdminOrders() {
             <ul className="divide-y divide-zinc-100">
               {filtered.map((order) => {
                 const currency = order.currency ?? "usd";
-                const ship =
-                  order.shippingAddress ?? order.billingAddress;
+                const ship = order.shippingAddress ?? order.billingAddress;
                 const open = expandedId === order.id;
                 const packed = Boolean(order.packedAt);
 
                 return (
-                  <li key={`${order.region}-${order.id}`} className="bg-white">
+                  <li
+                    key={`${order.region}-${order.id}`}
+                    className={cn(
+                      "bg-white transition-colors",
+                      packed && "bg-emerald-50/40",
+                    )}
+                  >
                     <div className="grid grid-cols-1 gap-2 px-3 py-2.5 md:grid-cols-[2.5rem_7rem_minmax(0,1fr)_minmax(0,1.2fr)_5.5rem_6.5rem] md:items-center md:gap-3">
                       <div className="flex items-center gap-2 md:block">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-400"
-                          checked={packed}
-                          disabled={packedBusyId === order.id}
-                          onChange={(e) =>
-                            void setPacked(order, e.target.checked)
-                          }
-                          title={packed ? "Mark unpacked" : "Mark packed"}
-                          aria-label={packed ? "Mark unpacked" : "Mark packed"}
-                        />
-                        <span className="text-xs text-zinc-500 md:hidden">
-                          {packed ? "Packed" : "Unpacked"}
-                        </span>
+                        <label className="inline-flex cursor-pointer items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className={adminCheck}
+                            checked={packed}
+                            disabled={packedBusyId === order.id}
+                            onChange={(e) =>
+                              void setPacked(order, e.target.checked)
+                            }
+                            title={packed ? "Mark unpacked" : "Mark packed"}
+                            aria-label={packed ? "Mark unpacked" : "Mark packed"}
+                          />
+                          <span className="text-xs text-zinc-500 md:hidden">
+                            {packed ? "Packed" : "Unpacked"}
+                          </span>
+                        </label>
                       </div>
 
                       <div className="text-xs text-zinc-600">
@@ -355,7 +400,7 @@ export function AdminOrders() {
                       <div className="min-w-0">
                         <button
                           type="button"
-                          className="truncate text-left text-sm font-medium text-zinc-900 hover:underline"
+                          className="cursor-pointer truncate text-left text-sm font-medium text-zinc-900 hover:underline"
                           onClick={() =>
                             setExpandedId(open ? null : order.id)
                           }
@@ -386,7 +431,7 @@ export function AdminOrders() {
                       <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
                         <button
                           type="button"
-                          className="rounded border border-zinc-200 px-2 py-1 text-xs text-zinc-600 hover:bg-zinc-50"
+                          className={adminRowBtn}
                           onClick={() =>
                             setExpandedId(open ? null : order.id)
                           }
@@ -404,10 +449,8 @@ export function AdminOrders() {
                             }
                             onClick={() => void printUspsLabel(order)}
                             className={cn(
-                              "rounded border px-2 py-1 text-xs",
-                              labelsReady
-                                ? "border-zinc-300 text-zinc-700 hover:bg-zinc-50"
-                                : "cursor-not-allowed border-zinc-100 text-zinc-300",
+                              adminRowBtn,
+                              !labelsReady && "cursor-not-allowed opacity-40",
                             )}
                           >
                             {labelBusyId === order.id ? "…" : "Label"}
@@ -426,12 +469,26 @@ export function AdminOrders() {
                             <p className="mt-1 text-zinc-800">
                               {order.customerName ?? "—"}
                             </p>
-                            <p className="text-zinc-600">
-                              {order.customerEmail ?? "—"}
-                            </p>
-                            <p className="text-zinc-600">
-                              {order.customerPhone ?? "No phone"}
-                            </p>
+                            {order.customerEmail ? (
+                              <a
+                                href={`mailto:${order.customerEmail}`}
+                                className="cursor-pointer text-zinc-600 underline-offset-2 hover:underline"
+                              >
+                                {order.customerEmail}
+                              </a>
+                            ) : (
+                              <p className="text-zinc-600">—</p>
+                            )}
+                            {order.customerPhone ? (
+                              <a
+                                href={`tel:${order.customerPhone}`}
+                                className="mt-0.5 block cursor-pointer text-zinc-600 underline-offset-2 hover:underline"
+                              >
+                                {order.customerPhone}
+                              </a>
+                            ) : (
+                              <p className="text-zinc-600">No phone</p>
+                            )}
                           </div>
                           <div>
                             <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
