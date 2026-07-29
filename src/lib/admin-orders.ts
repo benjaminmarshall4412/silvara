@@ -137,7 +137,7 @@ export async function listAdminOrders(limitPerRegion = 40): Promise<{
     try {
       const rows = await prisma.orderFulfillment.findMany({
         where: { sessionId: { in: orders.map((o) => o.id) } },
-        select: { sessionId: true, packedAt: true },
+        select: { sessionId: true, packedAt: true, hiddenAt: true },
       });
       const packed = new Map(
         rows.map((r) => [
@@ -145,10 +145,15 @@ export async function listAdminOrders(limitPerRegion = 40): Promise<{
           r.packedAt ? r.packedAt.toISOString() : null,
         ]),
       );
-      orders = orders.map((o) => ({
-        ...o,
-        packedAt: packed.get(o.id) ?? null,
-      }));
+      const hidden = new Set(
+        rows.filter((r) => r.hiddenAt).map((r) => r.sessionId),
+      );
+      orders = orders
+        .filter((o) => !hidden.has(o.id))
+        .map((o) => ({
+          ...o,
+          packedAt: packed.get(o.id) ?? null,
+        }));
     } catch (error) {
       console.error("[admin-orders] fulfillment lookup", error);
       warnings.push("Could not load packed status from database");
@@ -156,6 +161,29 @@ export async function listAdminOrders(limitPerRegion = 40): Promise<{
   }
 
   return { orders, warnings };
+}
+
+/** Soft-hide a Stripe session from the admin orders list (does not refund/delete in Stripe). */
+export async function hideAdminOrder(input: {
+  sessionId: string;
+  region: SiteRegion;
+}): Promise<void> {
+  const prisma = getPrisma();
+  if (!prisma) {
+    throw new Error("Database not configured");
+  }
+  await prisma.orderFulfillment.upsert({
+    where: { sessionId: input.sessionId },
+    create: {
+      sessionId: input.sessionId,
+      region: input.region,
+      hiddenAt: new Date(),
+    },
+    update: {
+      region: input.region,
+      hiddenAt: new Date(),
+    },
+  });
 }
 
 export async function setOrderPacked(input: {

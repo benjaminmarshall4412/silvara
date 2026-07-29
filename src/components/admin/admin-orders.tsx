@@ -76,6 +76,8 @@ export function AdminOrders() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [labelBusyId, setLabelBusyId] = useState<string | null>(null);
   const [packedBusyId, setPackedBusyId] = useState<string | null>(null);
+  const [confirmHideId, setConfirmHideId] = useState<string | null>(null);
+  const [hideBusyId, setHideBusyId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [, startFilterTransition] = useTransition();
 
@@ -249,6 +251,40 @@ export function AdminOrders() {
     }
   };
 
+  const hideOrder = async (order: AdminOrder) => {
+    setConfirmHideId(null);
+    setHideBusyId(order.id);
+    setToast(null);
+    setData((prev) =>
+      prev
+        ? { ...prev, orders: prev.orders.filter((o) => o.id !== order.id) }
+        : prev,
+    );
+    if (expandedId === order.id) setExpandedId(null);
+    try {
+      const res = await fetch("/api/admin/orders/hide", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: order.id,
+          region: order.region,
+        }),
+      });
+      if (!res.ok) {
+        const json = (await res.json()) as { error?: string };
+        setToast(json.error ?? "Could not remove order");
+        await load({ soft: true });
+        return;
+      }
+    } catch {
+      setToast("Network error removing order");
+      await load({ soft: true });
+    } finally {
+      setHideBusyId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
@@ -346,7 +382,7 @@ export function AdminOrders() {
               refreshing && "opacity-70",
             )}
           >
-            <div className="hidden grid-cols-[2.5rem_7rem_minmax(0,1fr)_minmax(0,1.2fr)_5.5rem_6.5rem] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500 md:grid">
+            <div className="hidden grid-cols-[2.5rem_7rem_minmax(0,1fr)_minmax(0,1.2fr)_5.5rem_8.5rem] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-[11px] font-medium uppercase tracking-wide text-zinc-500 md:grid">
               <span>Pack</span>
               <span>When</span>
               <span>Customer</span>
@@ -361,6 +397,7 @@ export function AdminOrders() {
                 const ship = order.shippingAddress ?? order.billingAddress;
                 const open = expandedId === order.id;
                 const packed = Boolean(order.packedAt);
+                const confirmingHide = confirmHideId === order.id;
 
                 return (
                   <li
@@ -370,7 +407,7 @@ export function AdminOrders() {
                       packed && "bg-emerald-50/40",
                     )}
                   >
-                    <div className="grid grid-cols-1 gap-2 px-3 py-2.5 md:grid-cols-[2.5rem_7rem_minmax(0,1fr)_minmax(0,1.2fr)_5.5rem_6.5rem] md:items-center md:gap-3">
+                    <div className="grid grid-cols-1 gap-2 px-3 py-2.5 md:grid-cols-[2.5rem_7rem_minmax(0,1fr)_minmax(0,1.2fr)_5.5rem_8.5rem] md:items-center md:gap-3">
                       <div className="flex items-center gap-2 md:block">
                         <label className="inline-flex cursor-pointer items-center gap-2">
                           <input
@@ -429,33 +466,65 @@ export function AdminOrders() {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-1.5 md:justify-end">
-                        <button
-                          type="button"
-                          className={adminRowBtn}
-                          onClick={() =>
-                            setExpandedId(open ? null : order.id)
-                          }
-                        >
-                          {open ? "Hide" : "Details"}
-                        </button>
-                        {order.region === "us" ? (
-                          <button
-                            type="button"
-                            disabled={!labelsReady || labelBusyId === order.id}
-                            title={
-                              labelsReady
-                                ? "Print USPS 4×6 via EasyPost"
-                                : "EasyPost not configured"
-                            }
-                            onClick={() => void printUspsLabel(order)}
-                            className={cn(
-                              adminRowBtn,
-                              !labelsReady && "cursor-not-allowed opacity-40",
-                            )}
-                          >
-                            {labelBusyId === order.id ? "…" : "Label"}
-                          </button>
-                        ) : null}
+                        {confirmingHide ? (
+                          <>
+                            <span className="text-xs text-zinc-500">Sure?</span>
+                            <button
+                              type="button"
+                              disabled={hideBusyId === order.id}
+                              onClick={() => void hideOrder(order)}
+                              className="cursor-pointer text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmHideId(null)}
+                              className="cursor-pointer text-xs text-zinc-500 hover:underline"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              className={adminRowBtn}
+                              onClick={() =>
+                                setExpandedId(open ? null : order.id)
+                              }
+                            >
+                              {open ? "Hide" : "Details"}
+                            </button>
+                            {order.region === "us" ? (
+                              <button
+                                type="button"
+                                disabled={!labelsReady || labelBusyId === order.id}
+                                title={
+                                  labelsReady
+                                    ? "Print USPS 4×6 via EasyPost"
+                                    : "EasyPost not configured"
+                                }
+                                onClick={() => void printUspsLabel(order)}
+                                className={cn(
+                                  adminRowBtn,
+                                  !labelsReady && "cursor-not-allowed opacity-40",
+                                )}
+                              >
+                                {labelBusyId === order.id ? "…" : "Label"}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              disabled={hideBusyId === order.id}
+                              title="Remove from this list (keeps Stripe payment)"
+                              onClick={() => setConfirmHideId(order.id)}
+                              className="cursor-pointer text-xs text-red-600 hover:underline disabled:opacity-40"
+                            >
+                              Del
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
