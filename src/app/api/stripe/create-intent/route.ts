@@ -56,7 +56,7 @@ function resolveCheckoutSiteBase(request: Request): string {
   if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) {
     return fromEnv
   }
-  return "https://silvara.org"
+  return "https://www.silvara.org"
 }
 
 export async function POST(request: Request) {
