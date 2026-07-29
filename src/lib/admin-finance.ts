@@ -77,10 +77,26 @@ export function resolveFinanceRange(fromRaw?: string | null, toRaw?: string | nu
   };
 }
 
+async function loadHiddenSessionIds(): Promise<Set<string>> {
+  const prisma = getPrisma();
+  if (!prisma) return new Set();
+  try {
+    const rows = await prisma.orderFulfillment.findMany({
+      where: { hiddenAt: { not: null } },
+      select: { sessionId: true },
+    });
+    return new Set(rows.map((r) => r.sessionId));
+  } catch (error) {
+    console.error("[finance] hidden sessions", error);
+    return new Set();
+  }
+}
+
 async function revenueForRegion(
   region: SiteRegion,
   fromUnix: number,
   toUnix: number,
+  hiddenSessionIds: Set<string>,
 ): Promise<RevenueByCurrency[]> {
   const stripe = getStripeForRegion(region);
   const totals = new Map<
@@ -108,6 +124,7 @@ async function revenueForRegion(
           orderCount: v.orderCount,
         }));
       }
+      if (hiddenSessionIds.has(s.id)) continue;
       if (
         s.payment_status !== "paid" &&
         s.payment_status !== "no_payment_required"
@@ -295,12 +312,14 @@ export async function getFinanceSnapshot(fromRaw?: string | null, toRaw?: string
   const fromUnix = Math.floor(range.from.getTime() / 1000);
   const toUnix = Math.floor(range.to.getTime() / 1000);
 
+  const hiddenSessionIds = await loadHiddenSessionIds();
+
   const [usRev, ukRev, entriesResult] = await Promise.all([
-    revenueForRegion("us", fromUnix, toUnix).catch((e) => {
+    revenueForRegion("us", fromUnix, toUnix, hiddenSessionIds).catch((e) => {
       console.error("[finance] US revenue", e);
       return [] as RevenueByCurrency[];
     }),
-    revenueForRegion("uk", fromUnix, toUnix).catch((e) => {
+    revenueForRegion("uk", fromUnix, toUnix, hiddenSessionIds).catch((e) => {
       console.error("[finance] UK revenue", e);
       return [] as RevenueByCurrency[];
     }),
