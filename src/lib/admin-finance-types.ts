@@ -19,6 +19,9 @@ export type FinanceEntryRow = {
 
 export type RevenueByCurrency = {
   currency: string;
+  /** Gross paid checkout totals. */
   amountCents: number;
+  /** Estimated Stripe processing fees for those orders. */
+  feeCents: number;
   orderCount: number;
 };

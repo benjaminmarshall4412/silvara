@@ -16,6 +16,23 @@ import type { SiteRegion } from "@/lib/site-region";
 export type { FinanceCategory, FinanceEntryRow, RevenueByCurrency };
 export { FINANCE_CATEGORIES, isFinanceCategory };
 
+/**
+ * Estimated Stripe standard online card fee per successful charge.
+ * US: 2.9% + 30¢ · UK: 1.5% + 20p (Stripe published standard rates).
+ * Approximation — Klarna/international may differ.
+ */
+export function estimateStripeFeeCents(
+  amountCents: number,
+  currency: string,
+): number {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) return 0;
+  const c = currency.toLowerCase();
+  if (c === "gbp") {
+    return Math.round(amountCents * 0.015) + 20;
+  }
+  return Math.round(amountCents * 0.029) + 30;
+}
+
 function startOfUtcDay(d: Date): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
@@ -66,7 +83,10 @@ async function revenueForRegion(
   toUnix: number,
 ): Promise<RevenueByCurrency[]> {
   const stripe = getStripeForRegion(region);
-  const totals = new Map<string, { amountCents: number; orderCount: number }>();
+  const totals = new Map<
+    string,
+    { amountCents: number; feeCents: number; orderCount: number }
+  >();
   let startingAfter: string | undefined;
 
   // Paginate recent complete sessions; stop once created is before range.
@@ -84,6 +104,7 @@ async function revenueForRegion(
         return [...totals.entries()].map(([currency, v]) => ({
           currency,
           amountCents: v.amountCents,
+          feeCents: v.feeCents,
           orderCount: v.orderCount,
         }));
       }
@@ -95,8 +116,14 @@ async function revenueForRegion(
       }
       const currency = (s.currency ?? "usd").toLowerCase();
       const amount = s.amount_total ?? 0;
-      const prev = totals.get(currency) ?? { amountCents: 0, orderCount: 0 };
+      const fee = estimateStripeFeeCents(amount, currency);
+      const prev = totals.get(currency) ?? {
+        amountCents: 0,
+        feeCents: 0,
+        orderCount: 0,
+      };
       prev.amountCents += amount;
+      prev.feeCents += fee;
       prev.orderCount += 1;
       totals.set(currency, prev);
     }
@@ -110,16 +137,25 @@ async function revenueForRegion(
   return [...totals.entries()].map(([currency, v]) => ({
     currency,
     amountCents: v.amountCents,
+    feeCents: v.feeCents,
     orderCount: v.orderCount,
   }));
 }
 
 function mergeRevenue(parts: RevenueByCurrency[][]): RevenueByCurrency[] {
-  const map = new Map<string, { amountCents: number; orderCount: number }>();
+  const map = new Map<
+    string,
+    { amountCents: number; feeCents: number; orderCount: number }
+  >();
   for (const list of parts) {
     for (const row of list) {
-      const prev = map.get(row.currency) ?? { amountCents: 0, orderCount: 0 };
+      const prev = map.get(row.currency) ?? {
+        amountCents: 0,
+        feeCents: 0,
+        orderCount: 0,
+      };
       prev.amountCents += row.amountCents;
+      prev.feeCents += row.feeCents;
       prev.orderCount += row.orderCount;
       map.set(row.currency, prev);
     }
@@ -128,6 +164,7 @@ function mergeRevenue(parts: RevenueByCurrency[][]): RevenueByCurrency[] {
     .map(([currency, v]) => ({
       currency,
       amountCents: v.amountCents,
+      feeCents: v.feeCents,
       orderCount: v.orderCount,
     }))
     .sort((a, b) => a.currency.localeCompare(b.currency));
@@ -289,9 +326,12 @@ export async function getFinanceSnapshot(fromRaw?: string | null, toRaw?: string
     costsTotalCents += e.amountCents;
   }
 
-  const revenueUsd =
+  const revenueUsdGross =
     revenue.find((r) => r.currency === "usd")?.amountCents ?? 0;
-  const profitUsdCents = revenueUsd - costsTotalCents;
+  const stripeFeesUsdCents =
+    revenue.find((r) => r.currency === "usd")?.feeCents ?? 0;
+  const revenueUsdNetCents = Math.max(0, revenueUsdGross - stripeFeesUsdCents);
+  const profitUsdCents = revenueUsdNetCents - costsTotalCents;
 
   return {
     from: range.fromStr,
@@ -300,7 +340,10 @@ export async function getFinanceSnapshot(fromRaw?: string | null, toRaw?: string
     entries: entriesResult.entries,
     costsByCategory,
     costsTotalCents,
-    revenueUsdCents: revenueUsd,
+    revenueUsdCents: revenueUsdGross,
+    revenueUsdGrossCents: revenueUsdGross,
+    stripeFeesUsdCents,
+    revenueUsdNetCents,
     profitUsdCents,
     warnings: warnings.length ? warnings : undefined,
   };
