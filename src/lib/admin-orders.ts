@@ -8,6 +8,7 @@ import type {
   AdminOrderLine,
 } from "@/lib/admin-orders-types";
 import { formatAddressLines, parseSilvaraCartMetadata } from "@/lib/order-cart";
+import { getPrisma } from "@/lib/prisma";
 import { getStripeForRegion } from "@/lib/stripe/server";
 import { isSiteRegion, type SiteRegion } from "@/lib/site-region";
 
@@ -88,6 +89,7 @@ function mapSession(
       quantity: li.quantity,
       amountTotal: li.amount_total,
     })),
+    packedAt: null,
   };
 }
 
@@ -126,10 +128,59 @@ export async function listAdminOrders(limitPerRegion = 40): Promise<{
   const warnings: string[] = [];
   if (us.error) warnings.push(`US Stripe: ${us.error}`);
   if (uk.error) warnings.push(`UK Stripe: ${uk.error}`);
-  const orders = [...us.orders, ...uk.orders].sort(
+  let orders = [...us.orders, ...uk.orders].sort(
     (a, b) => b.createdAt - a.createdAt,
   );
+
+  const prisma = getPrisma();
+  if (prisma && orders.length > 0) {
+    try {
+      const rows = await prisma.orderFulfillment.findMany({
+        where: { sessionId: { in: orders.map((o) => o.id) } },
+        select: { sessionId: true, packedAt: true },
+      });
+      const packed = new Map(
+        rows.map((r) => [
+          r.sessionId,
+          r.packedAt ? r.packedAt.toISOString() : null,
+        ]),
+      );
+      orders = orders.map((o) => ({
+        ...o,
+        packedAt: packed.get(o.id) ?? null,
+      }));
+    } catch (error) {
+      console.error("[admin-orders] fulfillment lookup", error);
+      warnings.push("Could not load packed status from database");
+    }
+  }
+
   return { orders, warnings };
+}
+
+export async function setOrderPacked(input: {
+  sessionId: string;
+  region: SiteRegion;
+  packed: boolean;
+}): Promise<{ packedAt: string | null }> {
+  const prisma = getPrisma();
+  if (!prisma) {
+    throw new Error("Database not configured");
+  }
+  const packedAt = input.packed ? new Date() : null;
+  const row = await prisma.orderFulfillment.upsert({
+    where: { sessionId: input.sessionId },
+    create: {
+      sessionId: input.sessionId,
+      region: input.region,
+      packedAt,
+    },
+    update: {
+      region: input.region,
+      packedAt,
+    },
+  });
+  return { packedAt: row.packedAt ? row.packedAt.toISOString() : null };
 }
 
 /** Single Checkout Session for label / fulfillment actions. */
@@ -142,7 +193,16 @@ export async function getAdminOrder(
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
       expand: ["line_items"],
     });
-    return mapSession(session, region);
+    const order = mapSession(session, region);
+    const prisma = getPrisma();
+    if (prisma) {
+      const row = await prisma.orderFulfillment.findUnique({
+        where: { sessionId },
+        select: { packedAt: true },
+      });
+      order.packedAt = row?.packedAt ? row.packedAt.toISOString() : null;
+    }
+    return order;
   } catch (error) {
     console.error("[admin-orders] getAdminOrder", error);
     return null;

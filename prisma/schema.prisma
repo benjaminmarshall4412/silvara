@@ -29,3 +29,16 @@ model EmailSignup {
   @@index([region])
   @@index([firstOrderAt])
 }
+
+/// Fulfillment flags for Stripe Checkout sessions (admin orders UI).
+model OrderFulfillment {
+  /// Stripe Checkout Session id (`cs_...`)
+  sessionId String    @id @db.VarChar(255)
+  region    String    @db.VarChar(8)
+  packedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([packedAt])
+  @@index([region])
+}

@@ -43,4 +43,6 @@ export type AdminOrder = {
     quantity: number | null;
     amountTotal: number | null;
   }[];
+  /** ISO timestamp when marked packed in admin, or null. */
+  packedAt: string | null;
 };
