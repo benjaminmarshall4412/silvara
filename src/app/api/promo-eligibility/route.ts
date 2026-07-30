@@ -9,9 +9,9 @@ import {
 import { isSiteRegion } from "@/lib/site-region";
 
 function pctFromPublicEnv(): number {
-  const raw = process.env.NEXT_PUBLIC_SILVARA_PROMO_PCT ?? "15";
+  const raw = process.env.NEXT_PUBLIC_SILVARA_PROMO_PCT ?? "0";
   const n = Number(raw);
-  if (!Number.isFinite(n)) return 15;
+  if (!Number.isFinite(n)) return 0;
   if (n <= 0) return 0;
   return Math.min(90, Math.max(1, Math.round(n)));
 }

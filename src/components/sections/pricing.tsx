@@ -114,17 +114,17 @@ function BundleUnitNote({
   if (p.id === "single") {
     return <p className={base}>{p.unitNote}</p>;
   }
-  const pairs = p.id === "triple" ? 3 : 6;
-  const bundleTotal =
-    showDiscount && pct > 0 ? applyPromoToCents(priceCents, pct) : priceCents;
-  const per = Math.round(bundleTotal / pairs);
   if (p.id === "triple") {
     return (
       <p className={base}>
-        {formatMoney(per, currency)} / pair bundled.
+        Save $6 and get free shipping vs 3 singles.
       </p>
     );
   }
+  const pairs = 6;
+  const bundleTotal =
+    showDiscount && pct > 0 ? applyPromoToCents(priceCents, pct) : priceCents;
+  const per = Math.round(bundleTotal / pairs);
   return (
     <p className={base}>
       {formatMoney(per, currency)} / pair — best per-shift cost.

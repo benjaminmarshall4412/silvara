@@ -227,8 +227,8 @@ export function CartDrawer() {
             </div>
           )}
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Shipping and tax calculated at checkout. Rotation ships on your
-            schedule after account setup.
+            Free shipping on 3+ pairs. Singles ship at $5.95. Tax at checkout if
+            applicable. Rotation ships on your schedule after account setup.
           </p>
           {lines.length === 0 ? (
             <span

@@ -12,7 +12,7 @@ export const envPublic = {
     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_UK ?? "",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? fallbackSiteUrl,
   /** Email capture modal (%). Set `0` to hide. */
-  promoPct: process.env.NEXT_PUBLIC_SILVARA_PROMO_PCT ?? "15",
+  promoPct: process.env.NEXT_PUBLIC_SILVARA_PROMO_PCT ?? "0",
   /** Google Ads account id, e.g. AW-18207293610. Leave empty to disable. */
   googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? "",
   /**

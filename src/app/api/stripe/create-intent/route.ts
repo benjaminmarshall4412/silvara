@@ -1,17 +1,13 @@
-import { cookies, headers } from "next/headers"
+import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
 import { getPostHogClient } from "@/lib/posthog-server"
 import { envPublic } from "@/lib/env.public"
-import { getStripePromoCouponIdForRegion } from "@/lib/env.server"
-import {
-  SILVARA_PROMO_COOKIE_NAME,
-  verifyPromoEligibleToken,
-} from "@/lib/promo-cookie"
 import { getStripeForRegion } from "@/lib/stripe/server"
 import { stripeCheckoutBranding } from "@/lib/stripe-checkout-branding"
 import { isSiteRegion, type SiteRegion } from "@/lib/site-region"
 import {
+  type CheckoutLine,
   getCheckoutMode,
   toStripeLineItems,
   validateCheckoutLines,
@@ -20,6 +16,42 @@ import {
 /** Countries Stripe Checkout may offer for shipping address (ISO 3166-1 alpha-2). */
 function shippingAllowedCountries(region: SiteRegion): string[] {
   return region === "uk" ? ["GB"] : ["US"]
+}
+
+const PAIRS_PER_BUNDLE: Record<CheckoutLine["id"], number> = {
+  single: 1,
+  triple: 3,
+  six: 6,
+  rotation: 3,
+}
+
+/** Free shipping at 3+ pairs (3-pack / 6-pack / 3 singles). Else $5.95 / £5.95. */
+function shippingOptionsForCart(lines: CheckoutLine[], region: SiteRegion) {
+  const currency = region === "uk" ? "gbp" : "usd"
+  const pairs = lines.reduce(
+    (sum, line) => sum + PAIRS_PER_BUNDLE[line.id] * line.quantity,
+    0,
+  )
+  if (pairs >= 3) {
+    return [
+      {
+        shipping_rate_data: {
+          type: "fixed_amount" as const,
+          fixed_amount: { amount: 0, currency },
+          display_name: "Free shipping",
+        },
+      },
+    ]
+  }
+  return [
+    {
+      shipping_rate_data: {
+        type: "fixed_amount" as const,
+        fixed_amount: { amount: 595, currency },
+        display_name: "Standard shipping",
+      },
+    },
+  ]
 }
 
 /**
@@ -67,17 +99,7 @@ export async function POST(request: Request) {
     const mode = getCheckoutMode(lines)
     const line_items = toStripeLineItems(lines, region)
 
-    const cookieStore = await cookies()
-    const promoEligible = verifyPromoEligibleToken(
-      cookieStore.get(SILVARA_PROMO_COOKIE_NAME)?.value,
-    )
-    const couponId = getStripePromoCouponIdForRegion(region)
-
-    const autoDiscount =
-      promoEligible && couponId ? [{ coupon: couponId }] : undefined
-
     // `payment_method_collection` is invalid for pure one-time carts (Stripe 2026+).
-    // Stripe forbids `allow_promotion_codes` and `discounts` on the same session — use one or the other.
     const siteBase = resolveCheckoutSiteBase(request)
     const silvaraCartMeta = JSON.stringify(
       lines.map((l) => ({
@@ -104,11 +126,10 @@ export async function POST(request: Request) {
       shipping_address_collection: {
         allowed_countries: shippingAllowedCountries(region),
       },
+      shipping_options: shippingOptionsForCart(lines, region),
       /** Match SILVARA storefront (Stripe-hosted UI; wallets like Link inherit theme colors). */
       branding_settings: stripeCheckoutBranding(),
-      ...(autoDiscount
-        ? { discounts: autoDiscount }
-        : { allow_promotion_codes: false as const }),
+      allow_promotion_codes: false as const,
     }
     const sessionParams =
       mode === "subscription"
@@ -122,11 +143,6 @@ export async function POST(request: Request) {
       throw new Error("Stripe did not return a client secret")
     }
 
-    /** True when Checkout Session includes `discounts` (cookie + STRIPE_EMAIL_PROMO_COUPON_ID_*). */
-    const appliedPromoDiscount = Boolean(
-      autoDiscount && autoDiscount.length > 0,
-    )
-
     const reqHeaders = await headers()
     const distinctId = reqHeaders.get("x-posthog-distinct-id") ?? session.id
     const posthog = getPostHogClient()
@@ -138,7 +154,7 @@ export async function POST(request: Request) {
         mode,
         region,
         line_count: lines.length,
-        applied_promo_discount: appliedPromoDiscount,
+        applied_promo_discount: false,
       },
     })
     await posthog.shutdown()
@@ -146,7 +162,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       clientSecret: session.client_secret,
       sessionId: session.id,
-      appliedPromoDiscount,
+      appliedPromoDiscount: false,
     })
   } catch (error) {
     console.error("[stripe] create-intent failed", error)

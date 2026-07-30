@@ -29,13 +29,13 @@ const stripeCurrency = region === "uk" ? "gbp" : "usd"
 const LOOKUP_KEYS = {
   us: {
     single: "silvara_single_usd_onetime_v1",
-    triple: "silvara_triple_usd_onetime_v1",
+    triple: "silvara_triple_usd_onetime_v2",
     six: "silvara_six_usd_onetime_v1",
     rotation: "silvara_rotation_usd_subscription_v1",
   },
   uk: {
     single: "silvara_single_uk_gbp_onetime_v1",
-    triple: "silvara_triple_uk_gbp_onetime_v1",
+    triple: "silvara_triple_uk_gbp_onetime_v2",
     six: "silvara_six_uk_gbp_onetime_v1",
     rotation: "silvara_rotation_uk_gbp_subscription_v1",
   },
@@ -54,7 +54,7 @@ const catalog = [
     bundleId: "triple",
     productName: "SILVARA 3-PACK",
     description: "Main workweek rotation bundle",
-    amount: 4200,
+    amount: 4800,
     lookupKey: LOOKUP_KEYS.triple,
     envKey: `STRIPE_PRICE_TRIPLE_${region.toUpperCase()}`,
   },
