@@ -12,11 +12,9 @@ import { cn } from "@/lib/utils";
 
 const navKeys = [
   { href: "/blog", label: "Read" },
-  { href: "#system", label: "Workweek" },
-  { href: "#loadout", label: "Kit" },
-  { href: "#failure-mode", label: "Why smell" },
-  { href: "#loadouts", label: "Shop" },
-  { href: "#rotation", label: "Rotation" },
+  { href: "#failure-mode", label: "Why" },
+  { href: "#shop", label: "Shop" },
+  { href: "#system", label: "Notes" },
 ] as const;
 
 export function SiteHeader() {

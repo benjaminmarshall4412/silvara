@@ -26,7 +26,7 @@ import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
 
 export function ProductDetailPanel({ bundleId }: { bundleId: BundleId }) {
   const region = useSiteRegion();
-  const shop = withSiteRegion(region, "/#loadouts");
+  const shop = withSiteRegion(region, "/#shop");
   const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const { state: promo } = usePromoEligibility();
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);

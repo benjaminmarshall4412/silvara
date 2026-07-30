@@ -40,8 +40,8 @@ export function FailureMode() {
                 </li>
               ))}
             </ul>
-            <p className="mt-6 font-mono-label text-sm font-semibold uppercase tracking-wide text-accent">
-              Functional claim · not cosmetic
+            <p className="mt-8 font-mono-label text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Functional · not fragrance
             </p>
           </div>
         </div>

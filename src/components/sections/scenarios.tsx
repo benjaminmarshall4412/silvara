@@ -35,14 +35,14 @@ export function Scenarios() {
       aria-labelledby="scenarios-heading"
     >
       <div className="mx-auto max-w-6xl">
-        <p className="font-mono-label text-sm font-semibold uppercase tracking-wide text-background/80">
-          On your feet all day
+        <p className="font-mono-label text-sm font-semibold uppercase tracking-wide text-background/55">
+          Built for the shift
         </p>
         <h2
           id="scenarios-heading"
           className="font-heading mt-2 text-3xl font-extrabold uppercase leading-tight tracking-tight md:text-4xl"
         >
-          Where cheap socks fail first
+          Where cheap socks fail
         </h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cases.map((c) => (

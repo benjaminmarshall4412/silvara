@@ -45,9 +45,8 @@ export const PRODUCTS: Product[] = [
     shortName: "Triple",
     stripeLookupKey: "silvara_triple_usd_onetime_v2",
     priceCents: 4800,
-    unitNote: "Save $6 and get free shipping vs 3 singles.",
+    unitNote: "Free shipping · $16 a pair.",
     description: "Three pairs—same sock—for a workweek without re-wearing damp.",
-    badge: "PRIMARY",
     featured: true,
   },
   {
@@ -56,9 +55,8 @@ export const PRODUCTS: Product[] = [
     shortName: "Six",
     stripeLookupKey: "silvara_six_usd_onetime_v1",
     priceCents: 7200,
-    unitNote: "$12 / pair — best per-shift cost.",
+    unitNote: "$12 a pair.",
     description: "Six pairs—heavy weeks, six days, or two people on one wash day.",
-    badge: "VALUE",
   },
   {
     id: "rotation",
@@ -68,7 +66,6 @@ export const PRODUCTS: Product[] = [
     priceCents: 3800,
     unitNote: "3 pairs · monthly",
     description: "Same sock as packs. 3 pairs/month—pause in Stripe anytime.",
-    badge: "WORKWEEK",
     isSubscription: true,
   },
 ];
