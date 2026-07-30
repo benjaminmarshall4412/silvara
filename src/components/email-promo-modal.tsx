@@ -56,6 +56,8 @@ export function EmailPromoModal() {
   useEffect(() => {
     if (!isBrowser) return;
     if (typeof window === "undefined") return;
+    // Never interrupt Meta / gift landing conversion with the email modal
+    if (/\/(us|uk)\/gift\/?$/.test(pathname ?? "")) return;
     try {
       if (localStorage.getItem(STORAGE_DISMISSED) === "1") return;
       // Legacy dismiss from the old 15% promo modal
@@ -65,7 +67,7 @@ export function EmailPromoModal() {
     }
     const t = window.setTimeout(() => setVisible(true), SHOW_DELAY_MS);
     return () => window.clearTimeout(t);
-  }, [isBrowser]);
+  }, [isBrowser, pathname]);
 
   useEffect(() => {
     if (!visible) return;

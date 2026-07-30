@@ -41,14 +41,14 @@ export function GiftProductGallery({
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="relative aspect-[4/5] overflow-hidden bg-muted md:aspect-[5/6]">
+      <div className="relative aspect-[4/5] overflow-hidden border-4 border-foreground bg-muted md:aspect-[5/6]">
         <Image
           src={current.src}
           alt={current.alt}
           fill
           priority={priority}
           sizes="(max-width: 768px) 100vw, 50vw"
-          className="object-cover object-center"
+          className="object-cover object-center transition-transform duration-500 ease-out"
         />
       </div>
 

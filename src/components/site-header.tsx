@@ -49,29 +49,28 @@ export function SiteHeader() {
             />
           </Link>
           {isGift ? (
-            <span className="font-mono-label truncate text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground md:text-xs">
-              3-Pair Gift Set
+            <span className="font-mono-label truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:text-xs">
+              Gift set
             </span>
           ) : null}
         </div>
-        {!isGift ? (
-          <nav
-            className="hidden max-w-xl flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-1 md:flex"
-            aria-label="Primary"
-          >
-            {nav.map((n) => (
-              <Link
-                key={`${n.label}-${n.href}`}
-                href={n.href}
-                className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
-              >
-                {n.label}
-              </Link>
-            ))}
-          </nav>
-        ) : (
-          <div className="flex-1" />
-        )}
+          {isGift ? null : (
+            <nav
+              className="hidden max-w-xl flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-1 md:flex"
+              aria-label="Primary"
+            >
+              {nav.map((n) => (
+                <Link
+                  key={`${n.label}-${n.href}`}
+                  href={n.href}
+                  className="font-mono-label text-xs font-medium uppercase tracking-widest text-foreground hover:text-accent"
+                >
+                  {n.label}
+                </Link>
+              ))}
+            </nav>
+          )}
+          {isGift ? <div className="flex-1" /> : null}
         <div className="flex items-center gap-2">
           <Button
             type="button"

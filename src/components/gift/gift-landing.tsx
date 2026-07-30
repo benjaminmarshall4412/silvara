@@ -25,8 +25,8 @@ import { cn } from "@/lib/utils";
 
 const FAQ = [
   {
-    q: "Is this only for construction workers?",
-    a: "No. Built for hard environments like work boots, but fine for travel, training, warehouse, kitchen, retail, or daily wear.",
+    q: "Is this only for construction?",
+    a: "No. Built for hard environments like work boots—also fine for warehouse, kitchen, retail, travel, or daily wear.",
   },
   {
     q: "Are these thick work socks?",
@@ -34,7 +34,7 @@ const FAQ = [
   },
   {
     q: "Does it stop all foot odor?",
-    a: "No sock can guarantee that. SILVARA is designed to help manage odor in the fabric through silver-infused yarn.",
+    a: "No sock can guarantee that. SILVARA helps manage odor in the fabric through silver-infused yarn—not perfume.",
   },
   {
     q: "How should they be washed?",
@@ -55,7 +55,7 @@ function ColorPicker({
     <div>
       <p
         id={`${id}-color-label`}
-        className="font-mono-label text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground"
+        className="font-mono-label text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
       >
         Color
       </p>
@@ -73,7 +73,7 @@ function ColorPicker({
               "flex-1 cursor-pointer border-2 px-3 py-2.5 font-mono-label text-xs font-bold uppercase tracking-wide transition-colors",
               value === c
                 ? "border-foreground bg-foreground text-background"
-                : "border-foreground/30 bg-background text-foreground hover:border-foreground",
+                : "border-foreground/25 bg-background text-foreground hover:border-foreground",
             )}
           >
             {SOCK_COLOR_LABEL[c]}
@@ -98,13 +98,13 @@ function GiftPurchaseBlock({
   ctaLabel: string;
 }) {
   return (
-    <div id={id} className="space-y-4">
+    <div id={id} className="space-y-5">
       <div>
-        <p className="font-heading text-3xl font-extrabold tabular-nums tracking-tight md:text-4xl">
+        <p className="font-heading text-4xl font-extrabold tabular-nums tracking-tight md:text-5xl">
           {priceLabel}
         </p>
-        <p className="mt-1 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-          3 pairs · one size · shipping at checkout
+        <p className="mt-2 text-sm leading-snug text-muted-foreground">
+          Free shipping · 3 pairs · one size
         </p>
       </div>
 
@@ -115,10 +115,10 @@ function GiftPurchaseBlock({
         sockSize={DEFAULT_SOCK_SIZE}
         sockColor={sockColor}
         label={ctaLabel}
-        className="!h-12 !text-sm md:!h-14 md:!text-base"
+        className="!h-14 !text-sm md:!h-16 md:!text-base"
       />
-      <p className="font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-        Most people gift black
+      <p className="font-mono-label text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">
+        Most people choose black
       </p>
     </div>
   );
@@ -132,7 +132,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
   const six = getProduct("six");
   const single = getProduct("single");
   const tripleCents =
-    unitAmountCentsByBundle.triple ?? triple?.priceCents ?? 4200;
+    unitAmountCentsByBundle.triple ?? triple?.priceCents ?? 4800;
   const sixCents = unitAmountCentsByBundle.six ?? six?.priceCents ?? 7200;
   const singleCents =
     unitAmountCentsByBundle.single ?? single?.priceCents ?? 1800;
@@ -175,29 +175,31 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
 
   return (
     <div className="pb-24 md:pb-0">
-      <p className="border-b border-foreground/20 bg-muted/60 px-4 py-2 text-center font-mono-label text-[0.65rem] font-bold uppercase tracking-[0.16em] text-muted-foreground md:px-6">
-        3-pair gift set · black or white · one size
-      </p>
+      {/* Hero */}
+      <section className="mx-auto grid max-w-[1120px] gap-8 px-4 py-8 md:grid-cols-2 md:items-start md:gap-12 md:px-6 md:py-14 lg:gap-16">
+        <div className="order-2 space-y-6 md:order-1 md:sticky md:top-24 md:self-start">
+          <div>
+            <p className="font-heading text-3xl font-extrabold uppercase tracking-tighter text-foreground sm:text-4xl">
+              SILVARA
+            </p>
+            <p className="font-mono-label mt-3 text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              {hero.eyebrow}
+            </p>
+            <h1 className="font-heading mt-3 text-pretty text-3xl font-extrabold uppercase leading-[0.98] tracking-tight md:text-4xl lg:text-[2.75rem]">
+              {hero.headline}
+            </h1>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-foreground/75 md:text-lg">
+              {hero.subheadline}
+            </p>
+          </div>
 
-      <section className="mx-auto grid max-w-[1100px] gap-10 px-4 py-10 md:grid-cols-2 md:items-start md:gap-14 md:px-6 md:py-16">
-        <div className="order-2 md:order-1">
-          <p className="font-mono-label text-[0.65rem] font-bold uppercase tracking-widest text-accent">
-            {hero.eyebrow}
-          </p>
-          <h1 className="font-heading mt-3 text-4xl leading-[0.95] font-extrabold tracking-tight uppercase md:text-5xl lg:text-[3.4rem]">
-            {hero.headline}
-          </h1>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-foreground/80 md:text-lg">
-            {hero.subheadline}
-          </p>
-
-          <div className="mt-8 hidden max-w-md md:block">
+          <div className="hidden max-w-md md:block">
             <GiftPurchaseBlock
               id="gift-purchase-hero"
               sockColor={sockColor}
               setSockColor={setSockColor}
               priceLabel={priceLabel}
-              ctaLabel="Give him the 3-pack"
+              ctaLabel="Add the 3-pack"
             />
           </div>
         </div>
@@ -212,24 +214,29 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
             sockColor={sockColor}
             setSockColor={setSockColor}
             priceLabel={priceLabel}
-            ctaLabel="Give him the 3-pack"
+            ctaLabel="Add the 3-pack"
           />
         </div>
-        <div ref={firstCtaRef} className="order-4 col-span-full h-px" aria-hidden />
+        <div
+          ref={firstCtaRef}
+          className="order-4 col-span-full h-px"
+          aria-hidden
+        />
       </section>
 
-      <section className="border-y border-foreground/15 bg-muted/40">
-        <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-10 md:grid-cols-3 md:gap-10 md:px-6 md:py-12">
+      {/* Proof strip */}
+      <section className="border-y-4 border-foreground bg-muted/50">
+        <div className="mx-auto grid max-w-[1120px] gap-8 px-4 py-10 md:grid-cols-3 md:gap-10 md:px-6 md:py-12">
           {[
-            ["Useful every week", "Not another drawer item."],
-            ["Made for long days", "Thin crew for boots and shoes."],
-            ["Silver-infused yarn", "Helps manage odor in the sock."],
+            ["He’ll use them", "Already in the boot-and-laundry routine."],
+            ["Thin crew fit", "Room in the toe box—not a thick work sock."],
+            ["Silver in the yarn", "Helps manage odor in the fabric."],
           ].map(([title, body]) => (
             <div key={title}>
               <p className="font-heading text-sm font-extrabold uppercase tracking-tight">
                 {title}
               </p>
-              <p className="mt-1.5 text-sm leading-relaxed text-foreground/70">
+              <p className="mt-2 text-sm leading-relaxed text-foreground/70">
                 {body}
               </p>
             </div>
@@ -237,54 +244,35 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1100px] px-4 py-14 md:px-6 md:py-20">
-        <div className="max-w-2xl">
-          <h2 className="font-heading text-3xl font-extrabold tracking-tight uppercase md:text-4xl">
-            More thoughtful than another random gadget.
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-foreground/80 md:text-lg">
-            He may not ask for better socks. He’ll still use them every week—and
-            you’ll have noticed the long shifts and the boots by the door.
-          </p>
-        </div>
-        <ul className="mt-10 grid max-w-3xl gap-6 md:grid-cols-3">
-          {[
-            ["He will use them", "Already in his routine."],
-            ["You noticed", "Tied to how he works."],
-            ["It solves something", "Silver yarn with a job."],
-          ].map(([title, body]) => (
-            <li key={title}>
-              <p className="font-heading text-sm font-extrabold uppercase">
-                {title}
-              </p>
-              <p className="mt-1 text-sm text-foreground/70">{body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="bg-muted/50">
-        <div className="mx-auto grid max-w-[1100px] gap-10 px-4 py-14 md:grid-cols-2 md:items-center md:gap-14 md:px-6 md:py-20">
-          <div>
-            <h2 className="font-heading text-3xl font-extrabold tracking-tight uppercase md:text-4xl">
-              A quiet fix for the end of the day.
+      {/* Why */}
+      <section className="mx-auto max-w-[1120px] px-4 py-14 md:px-6 md:py-20">
+        <div className="grid gap-10 md:grid-cols-2 md:items-end md:gap-16">
+          <div className="max-w-lg">
+            <p className="font-mono-label text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Why it works
+            </p>
+            <h2 className="font-heading mt-3 text-3xl font-extrabold uppercase leading-tight tracking-tight md:text-4xl">
+              Wet isn’t smell—bacteria is.
             </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground/80 md:text-lg">
+            <p className="mt-4 text-base leading-relaxed text-foreground/75 md:text-lg">
               Heat and hours in a closed shoe leave odor in the sock. Sprays
-              treat the shoe. SILVARA changes the layer on his foot—silver
-              fiber, no perfume.
+              treat the shoe. SILVARA changes the layer on his foot.
             </p>
           </div>
-          <div className="space-y-4 font-mono-label text-xs uppercase tracking-wide">
-            <div className="border-l-2 border-foreground/25 pl-4">
-              <p className="text-muted-foreground">Regular sock</p>
-              <p className="mt-1 normal-case tracking-normal text-foreground/75">
+          <div className="space-y-5">
+            <div className="border-l-4 border-foreground/20 pl-4">
+              <p className="font-mono-label text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                Typical sock
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/70">
                 Standard yarn. Holds moisture and odor after long wear.
               </p>
             </div>
-            <div className="border-l-2 border-accent pl-4">
-              <p className="text-accent">SILVARA</p>
-              <p className="mt-1 normal-case tracking-normal text-foreground/75">
+            <div className="border-l-4 border-accent pl-4">
+              <p className="font-mono-label text-[0.65rem] font-semibold uppercase tracking-wide text-accent">
+                SILVARA
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/70">
                 Silver-infused yarn. Thin crew for boots and everyday wear.
               </p>
             </div>
@@ -292,16 +280,22 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1100px] px-4 py-14 md:px-6 md:py-20">
-        <div className="max-w-lg">
-          <h2 className="font-heading text-3xl font-extrabold tracking-tight uppercase md:text-4xl">
-            What arrives
-          </h2>
-          <p className="mt-4 text-base leading-relaxed text-foreground/80">
-            Three matching pairs of thin crew socks in your selected color. One
-            size.
-          </p>
-          <div className="mt-8">
+      {/* What arrives + CTA */}
+      <section className="border-y-4 border-foreground bg-surface-inverse text-background">
+        <div className="mx-auto grid max-w-[1120px] gap-10 px-4 py-14 md:grid-cols-2 md:items-center md:gap-16 md:px-6 md:py-20">
+          <div>
+            <p className="font-mono-label text-xs font-semibold uppercase tracking-[0.22em] text-background/55">
+              In the box
+            </p>
+            <h2 className="font-heading mt-3 text-3xl font-extrabold uppercase tracking-tight md:text-4xl">
+              Three pairs. One color. Free shipping.
+            </h2>
+            <p className="mt-4 max-w-md text-base leading-relaxed text-background/75">
+              Matching thin crew socks in black or white marl. Same sock as the
+              main line—gift-ready as a workweek set.
+            </p>
+          </div>
+          <div className="max-w-md rounded-none border-2 border-background/30 bg-background p-5 text-foreground md:p-6">
             <GiftPurchaseBlock
               id="gift-purchase-mid"
               sockColor={sockColor}
@@ -313,139 +307,116 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
         </div>
       </section>
 
-      <section className="border-t border-foreground/15">
-        <div className="mx-auto max-w-[1100px] px-4 py-14 md:px-6 md:py-16">
-          <div className="grid gap-12 md:grid-cols-2">
-            <div>
-              <h2 className="font-heading text-xl font-extrabold uppercase tracking-tight md:text-2xl">
-                Specs
-              </h2>
-              <dl className="mt-5 space-y-3">
-                {[
-                  ["Contents", "3 pairs"],
-                  ["Height", "Thin crew"],
-                  ["Colors", "Black or white marl"],
-                  ["Fit", "One size"],
-                  ["Yarn", "Silver-infused blend"],
-                  ["Care", "Wash cold · tumble low · no bleach"],
-                ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex justify-between gap-4 border-b border-foreground/10 pb-3 text-sm"
-                  >
-                    <dt className="font-mono-label text-[0.65rem] font-bold uppercase tracking-wide text-muted-foreground">
-                      {label}
-                    </dt>
-                    <dd className="text-right text-foreground/85">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+      {/* Specs + FAQ */}
+      <section className="mx-auto max-w-[1120px] px-4 py-14 md:px-6 md:py-16">
+        <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+          <div>
+            <h2 className="font-heading text-xl font-extrabold uppercase tracking-tight md:text-2xl">
+              Specs
+            </h2>
+            <dl className="mt-6 space-y-0 border-t-2 border-foreground">
+              {[
+                ["Contents", "3 pairs"],
+                ["Height", "Thin crew"],
+                ["Colors", "Black or white marl"],
+                ["Fit", "One size"],
+                ["Yarn", "Silver-infused blend"],
+                ["Shipping", "Free on this set"],
+                ["Care", "Wash cold · tumble low · no bleach"],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex justify-between gap-4 border-b-2 border-foreground py-3.5 text-sm"
+                >
+                  <dt className="font-mono-label text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                    {label}
+                  </dt>
+                  <dd className="text-right text-foreground/85">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
 
-            <div>
-              <h2 className="font-heading text-xl font-extrabold uppercase tracking-tight md:text-2xl">
-                Questions
-              </h2>
-              <div className="mt-4 divide-y divide-foreground/10">
-                {FAQ.map((item) => (
-                  <details key={item.q} className="group py-3">
-                    <summary className="cursor-pointer list-none font-heading text-sm font-extrabold uppercase tracking-tight marker:content-none [&::-webkit-details-marker]:hidden">
-                      <span className="flex items-start justify-between gap-4">
-                        {item.q}
-                        <span className="text-muted-foreground group-open:hidden">
-                          +
-                        </span>
-                        <span className="hidden text-muted-foreground group-open:inline">
-                          −
-                        </span>
+          <div>
+            <h2 className="font-heading text-xl font-extrabold uppercase tracking-tight md:text-2xl">
+              Questions
+            </h2>
+            <div className="mt-4 divide-y-2 divide-foreground/15 border-t-2 border-foreground">
+              {FAQ.map((item) => (
+                <details key={item.q} className="group py-4">
+                  <summary className="cursor-pointer list-none font-heading text-sm font-extrabold uppercase tracking-tight marker:content-none [&::-webkit-details-marker]:hidden">
+                    <span className="flex items-start justify-between gap-4">
+                      {item.q}
+                      <span className="text-muted-foreground group-open:hidden">
+                        +
                       </span>
-                    </summary>
-                    <p className="mt-2 pr-6 text-sm leading-relaxed text-foreground/75">
-                      {item.a}
-                    </p>
-                  </details>
-                ))}
-              </div>
+                      <span className="hidden text-muted-foreground group-open:inline">
+                        −
+                      </span>
+                    </span>
+                  </summary>
+                  <p className="mt-2 pr-6 text-sm leading-relaxed text-foreground/70">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-t border-foreground/15 bg-muted/30">
-        <div className="mx-auto max-w-[1100px] px-4 py-10 md:px-6">
-          <p className="font-mono-label text-[0.65rem] font-bold uppercase tracking-widest text-muted-foreground">
-            Other options
-          </p>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
+      {/* Secondary options — quiet */}
+      <section className="border-t-4 border-foreground bg-muted/40">
+        <div className="mx-auto flex max-w-[1120px] flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between md:px-6">
+          <p className="text-sm text-foreground/65">
+            Not gifting?{" "}
+            <Link
+              href={withSiteRegion(region, "/#shop")}
+              className="font-medium text-foreground underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground"
+            >
+              See all packs
+            </Link>
             {single ? (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <p className="text-sm text-foreground/70">
-                  Just want to try one pair?{" "}
-                  <span className="font-medium text-foreground">
-                    {formatMoney(singleCents, currency)}
-                  </span>
-                </p>
-                <AddToCartButton
-                  id="single"
-                  sockSize={DEFAULT_SOCK_SIZE}
-                  sockColor={sockColor}
-                  label="Add 1 pair"
-                  variant="outline"
-                  className="!h-10 !w-auto !px-4 !text-xs"
-                />
-              </div>
+              <>
+                {" "}
+                · try one pair for {formatMoney(singleCents, currency)}
+                <span className="text-muted-foreground"> (+$5.95 ship)</span>
+              </>
             ) : null}
             {six ? (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 sm:border-l sm:border-foreground/15 sm:pl-8">
-                <p className="text-sm text-foreground/70">
-                  Need more? 6-pack{" "}
-                  <span className="font-medium text-foreground">
-                    {formatMoney(sixCents, currency)}
-                  </span>
-                </p>
-                <AddToCartButton
-                  id="six"
-                  sockSize={DEFAULT_SOCK_SIZE}
-                  sockColor={sockColor}
-                  label="Add 6-pack"
-                  variant="outline"
-                  className="!h-10 !w-auto !px-4 !text-xs"
-                />
-              </div>
+              <>
+                {" "}
+                · 6-pack {formatMoney(sixCents, currency)}
+              </>
             ) : null}
-          </div>
+          </p>
         </div>
       </section>
-
-      <div className="border-t border-foreground/15 px-4 py-5 text-center md:px-6">
-        <Link
-          href={withSiteRegion(region, "/")}
-          className="font-mono-label text-[0.65rem] uppercase tracking-widest text-muted-foreground underline underline-offset-4 hover:text-foreground"
-        >
-          Main SILVARA site
-        </Link>
-      </div>
 
       <SiteFooter region={region} />
 
+      {/* Mobile sticky CTA */}
       <div
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 border-t border-foreground/20 bg-background/95 p-3 backdrop-blur-sm transition-transform duration-200 md:hidden",
+          "fixed inset-x-0 bottom-0 z-40 border-t-4 border-foreground bg-background/95 p-3 backdrop-blur-sm transition-transform duration-300 md:hidden",
           stickyVisible ? "translate-y-0" : "translate-y-full",
         )}
       >
         <div className="mx-auto flex max-w-lg items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="font-mono-label text-[0.65rem] font-bold uppercase tracking-wide">
-              3-pack · {priceLabel}
+            <p className="font-heading text-sm font-extrabold tabular-nums">
+              {priceLabel}
+              <span className="ml-2 font-mono-label text-[0.6rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                Free ship
+              </span>
             </p>
             <p className="truncate font-mono-label text-[0.6rem] uppercase text-muted-foreground">
-              {SOCK_COLOR_LABEL[sockColor]}
+              3-pack · {SOCK_COLOR_LABEL[sockColor]}
             </p>
           </div>
           <a
             href="#gift-purchase-mobile"
-            className="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center bg-accent px-4 font-heading text-xs font-extrabold uppercase tracking-wide text-accent-foreground"
+            className="inline-flex h-12 shrink-0 cursor-pointer items-center justify-center bg-accent px-5 font-heading text-xs font-extrabold uppercase tracking-wide text-accent-foreground"
             onClick={() => {
               posthog.capture("gift_sticky_cta_clicked", { angle, region });
             }}
