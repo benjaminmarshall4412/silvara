@@ -5,6 +5,7 @@ import { getPostHogClient } from "@/lib/posthog-server"
 import { envPublic } from "@/lib/env.public"
 import { getStripeForRegion } from "@/lib/stripe/server"
 import { stripeCheckoutBranding } from "@/lib/stripe-checkout-branding"
+import { SHIPPING_FEE_CENTS, qualifiesForFreeShipping } from "@/lib/products"
 import { isSiteRegion, type SiteRegion } from "@/lib/site-region"
 import {
   type CheckoutLine,
@@ -18,21 +19,10 @@ function shippingAllowedCountries(region: SiteRegion): string[] {
   return region === "uk" ? ["GB"] : ["US"]
 }
 
-const PAIRS_PER_BUNDLE: Record<CheckoutLine["id"], number> = {
-  single: 1,
-  triple: 3,
-  six: 6,
-  rotation: 3,
-}
-
 /** Free shipping at 3+ pairs (3-pack / 6-pack / 3 singles). Else $5.95 / £5.95. */
 function shippingOptionsForCart(lines: CheckoutLine[], region: SiteRegion) {
   const currency = region === "uk" ? "gbp" : "usd"
-  const pairs = lines.reduce(
-    (sum, line) => sum + PAIRS_PER_BUNDLE[line.id] * line.quantity,
-    0,
-  )
-  if (pairs >= 3) {
+  if (qualifiesForFreeShipping(lines)) {
     return [
       {
         shipping_rate_data: {
@@ -47,7 +37,7 @@ function shippingOptionsForCart(lines: CheckoutLine[], region: SiteRegion) {
     {
       shipping_rate_data: {
         type: "fixed_amount" as const,
-        fixed_amount: { amount: 595, currency },
+        fixed_amount: { amount: SHIPPING_FEE_CENTS, currency },
         display_name: "Standard shipping",
       },
     },

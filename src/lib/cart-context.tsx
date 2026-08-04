@@ -23,6 +23,11 @@ import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { clearPersistedCart, persistCart, readPersistedCart } from "@/lib/cart-storage";
 
+type AddOptions = {
+  /** Buy-now flows navigate straight to checkout, so the drawer would only flash. */
+  openDrawer?: boolean;
+};
+
 type CartContextValue = {
   lines: CartLine[];
   add: (
@@ -30,6 +35,7 @@ type CartContextValue = {
     qty?: number,
     sockSize?: SockSize,
     sockColor?: SockColor,
+    options?: AddOptions,
   ) => void;
   setQty: (lineKey: string, qty: number) => void;
   remove: (lineKey: string) => void;
@@ -70,6 +76,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       qty = 1,
       sockSize: SockSize = DEFAULT_SOCK_SIZE,
       sockColor: SockColor = DEFAULT_SOCK_COLOR,
+      options: AddOptions = {},
     ) => {
       setLines((prev) => {
         const i = prev.findIndex(
@@ -85,7 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         next[i] = { ...next[i], quantity: next[i].quantity + qty };
         return next;
       });
-      setOpenCart(true);
+      if (options.openDrawer !== false) setOpenCart(true);
     },
     [],
   );

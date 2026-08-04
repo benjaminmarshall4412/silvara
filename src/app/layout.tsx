@@ -24,6 +24,7 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.silvara.org"),
   title: "SILVARA — Silver thin crew work socks",
   description:
     "Thin crew socks with silver in the yarn—boots, long shifts. 1, 3, 6 pairs or 3/month subscribed. Bacteria on the fiber, not perfume.",

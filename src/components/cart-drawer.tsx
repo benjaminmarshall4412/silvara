@@ -9,7 +9,14 @@ import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
-import { formatMoney, getProduct } from "@/lib/products";
+import {
+  FREE_SHIPPING_MIN_PAIRS,
+  SHIPPING_FEE_CENTS,
+  countPairs,
+  formatMoney,
+  getProduct,
+} from "@/lib/products";
+import { FIT_NOTE, RETURNS_PROMISE } from "@/lib/store-promises";
 import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
 import { cartLineKey } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
@@ -46,6 +53,9 @@ export function CartDrawer() {
     });
   }, [openCart, lines.length, subtotalCents, currency, region]);
 
+  const pairs = countPairs(lines);
+  const freeShipping = pairs >= FREE_SHIPPING_MIN_PAIRS;
+
   const eligiblePromo =
     !!(promo && promo.pct > 0 && promo.claimedOnThisDevice);
   const pct = promo?.pct ?? 0;
@@ -68,20 +78,20 @@ export function CartDrawer() {
       />
       <aside
         className={cn(
-          "fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col border-l-4 border-foreground bg-background text-foreground transition-transform duration-200 ease-out",
+          "fixed top-0 right-0 z-50 flex h-full w-full max-w-md flex-col bg-background text-foreground shadow-[0_0_80px_rgba(0,0,0,0.35)] transition-transform duration-200 ease-out",
           openCart ? "translate-x-0" : "translate-x-full",
         )}
         aria-hidden={!openCart}
       >
-        <div className="flex items-center justify-between border-b-4 border-foreground px-5 py-4">
+        <div className="border-border/25 flex items-center justify-between border-b px-5 py-4">
           <span className="font-mono-label text-sm font-semibold uppercase tracking-wide">
-            Cart
+            Your cart
           </span>
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
-            className="rounded-none border-2 border-foreground text-xs uppercase tracking-wider"
+            className="rounded-none text-xs uppercase tracking-wider"
             onClick={() => setOpenCart(false)}
           >
             Close
@@ -91,7 +101,7 @@ export function CartDrawer() {
         <div className="flex flex-1 flex-col gap-0 overflow-y-auto">
           {lines.length === 0 ? (
             <p className="p-5 text-base leading-relaxed text-foreground/85">
-              Empty. Add a bundle or rotation from the shop block.
+              Your cart is empty.
             </p>
           ) : (
             lines.map((line) => {
@@ -102,7 +112,7 @@ export function CartDrawer() {
               return (
                 <div
                   key={lk}
-                  className="border-b-2 border-foreground px-5 py-4"
+                  className="border-border/20 border-b px-5 py-4 last:border-b-0"
                 >
                   <div className="flex justify-between gap-3">
                     <div>
@@ -112,11 +122,11 @@ export function CartDrawer() {
                       <p className="mt-1 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
                         {SOCK_COLOR_LABEL[line.sockColor]} · one size
                       </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {p.isSubscription
-                          ? "Subscription · billed per shipment"
-                          : p.unitNote}
-                      </p>
+                      {p.isSubscription ? (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Subscription · billed per shipment
+                        </p>
+                      ) : null}
                     </div>
                     <p className="shrink-0 font-mono-label text-sm font-medium">
                       {formatMoney(unit * line.quantity, currency)}
@@ -127,7 +137,7 @@ export function CartDrawer() {
                       type="button"
                       variant="outline"
                       size="icon-sm"
-                      className="rounded-none border-2 border-foreground"
+                      className="border-border/40 rounded-none border"
                       onClick={() => {
                         setQty(lk, line.quantity - 1);
                         posthog.capture("cart_item_quantity_changed", {
@@ -149,7 +159,7 @@ export function CartDrawer() {
                       type="button"
                       variant="outline"
                       size="icon-sm"
-                      className="rounded-none border-2 border-foreground"
+                      className="border-border/40 rounded-none border"
                       onClick={() => {
                         setQty(lk, line.quantity + 1);
                         posthog.capture("cart_item_quantity_changed", {
@@ -188,7 +198,7 @@ export function CartDrawer() {
           )}
         </div>
 
-        <div className="border-t-4 border-foreground p-5">
+        <div className="border-border/25 border-t p-5">
           {promoDiscountCents > 0 ? (
             <div className="space-y-2">
               <div className="flex items-baseline justify-between gap-4">
@@ -207,7 +217,7 @@ export function CartDrawer() {
                   −{formatMoney(promoDiscountCents, currency)}
                 </span>
               </div>
-              <div className="flex items-baseline justify-between gap-4 border-t-2 border-foreground pt-3">
+              <div className="border-border/30 flex items-baseline justify-between gap-4 border-t pt-3">
                 <span className="font-mono-label text-xs font-bold uppercase tracking-widest">
                   Estimated total
                 </span>
@@ -226,15 +236,28 @@ export function CartDrawer() {
               </span>
             </div>
           )}
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Free shipping on 3+ pairs. Singles ship at $5.95. Tax at checkout if
-            applicable. Rotation ships on your schedule after account setup.
-          </p>
+          <div className="mt-3 flex items-center justify-between gap-4 text-sm">
+            <span className="text-muted-foreground">Shipping</span>
+            <span className="font-medium">
+              {lines.length === 0
+                ? "—"
+                : freeShipping
+                  ? "Free"
+                  : `${formatMoney(SHIPPING_FEE_CENTS, currency)} standard`}
+            </span>
+          </div>
+          {!freeShipping && lines.length > 0 ? (
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Add {FREE_SHIPPING_MIN_PAIRS - pairs} more{" "}
+              {FREE_SHIPPING_MIN_PAIRS - pairs === 1 ? "pair" : "pairs"} for free
+              shipping.
+            </p>
+          ) : null}
           {lines.length === 0 ? (
             <span
               className={cn(
                 buttonVariants({ variant: "default", size: "lg" }),
-                "mt-4 flex h-14 w-full cursor-not-allowed items-center justify-center rounded-none border-2 border-foreground bg-muted text-base font-extrabold uppercase tracking-wide text-muted-foreground opacity-60",
+                "mt-4 flex h-14 w-full cursor-not-allowed items-center justify-center rounded-none border-0 bg-muted text-base font-extrabold uppercase tracking-wide text-muted-foreground opacity-60",
               )}
             >
               Checkout
@@ -253,12 +276,17 @@ export function CartDrawer() {
               }}
               className={cn(
                 buttonVariants({ variant: "default", size: "lg" }),
-                "mt-4 flex h-14 w-full cursor-pointer items-center justify-center rounded-none border-2 border-transparent bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90",
+                "mt-4 flex h-14 w-full cursor-pointer items-center justify-center rounded-none border-0 bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90",
               )}
             >
               Checkout
             </Link>
           )}
+          {[RETURNS_PROMISE, FIT_NOTE].filter(Boolean).length > 0 ? (
+            <p className="mt-3 text-center text-xs text-muted-foreground">
+              {[RETURNS_PROMISE, FIT_NOTE].filter(Boolean).join(" · ")}
+            </p>
+          ) : null}
         </div>
       </aside>
     </>

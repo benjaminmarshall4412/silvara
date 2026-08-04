@@ -17,6 +17,12 @@ export function SiteFooter({ region }: { region: SiteRegion }) {
         </div>
         <div className="flex flex-col gap-4 md:items-end">
           <Link
+            href={withSiteRegion(region, "/contact")}
+            className="font-mono-label text-sm font-bold uppercase tracking-wide text-background hover:underline"
+          >
+            Contact
+          </Link>
+          <Link
             href={withSiteRegion(region, "/blog")}
             className="font-mono-label text-sm font-bold uppercase tracking-wide text-background hover:underline"
           >

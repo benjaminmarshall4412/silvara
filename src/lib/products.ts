@@ -74,6 +74,32 @@ export function getProduct(id: BundleId): Product | undefined {
   return PRODUCTS.find((p) => p.id === id);
 }
 
+export const PAIRS_PER_BUNDLE: Record<BundleId, number> = {
+  single: 1,
+  triple: 3,
+  six: 6,
+  rotation: 3,
+};
+
+/** Storefront copy and Stripe shipping rates must agree on these. */
+export const FREE_SHIPPING_MIN_PAIRS = 3;
+export const SHIPPING_FEE_CENTS = 595;
+
+export function countPairs(
+  lines: readonly { id: BundleId; quantity: number }[],
+): number {
+  return lines.reduce(
+    (sum, line) => sum + PAIRS_PER_BUNDLE[line.id] * line.quantity,
+    0,
+  );
+}
+
+export function qualifiesForFreeShipping(
+  lines: readonly { id: BundleId; quantity: number }[],
+): boolean {
+  return countPairs(lines) >= FREE_SHIPPING_MIN_PAIRS;
+}
+
 export function formatUsd(cents: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",

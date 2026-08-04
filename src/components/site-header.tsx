@@ -6,6 +6,10 @@ import { usePathname } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
+import {
+  getConversionLandingKind,
+  isCheckoutPath,
+} from "@/lib/conversion-landing-paths";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import { cn } from "@/lib/utils";
@@ -19,7 +23,12 @@ const navKeys = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const isGift = /\/(us|uk)\/gift\/?$/.test(pathname ?? "");
+  const conversionLanding = getConversionLandingKind(pathname);
+  const isConversionLanding = conversionLanding !== null;
+  const isOdorLanding = conversionLanding === "odor";
+  const isCheckout = isCheckoutPath(pathname);
+  /** Nav links and the cart button are exits once payment is on screen. */
+  const minimalHeader = isConversionLanding || isCheckout;
   const { itemCount, setOpenCart } = useCart();
   const region = useSiteRegion();
   const nav = navKeys.map((n) => ({
@@ -30,11 +39,26 @@ export function SiteHeader() {
   }));
 
   return (
-    <header className="sticky top-0 z-30 border-b-4 border-foreground bg-background">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">
+    <header
+      className={cn(
+        "sticky top-0 z-30",
+        isOdorLanding
+          ? "border-b border-white/10 bg-[#21130e] text-white"
+          : "border-b-4 border-foreground bg-background",
+      )}
+    >
+      <div
+        className={cn(
+          "mx-auto flex items-center justify-between gap-4 px-4 py-3 md:px-6",
+          isOdorLanding ? "max-w-[1240px] lg:px-10" : "max-w-6xl",
+        )}
+      >
         <div className="flex min-w-0 items-center gap-3 md:gap-4">
           <Link
-            href={withSiteRegion(region, isGift ? "/gift" : "/")}
+            href={withSiteRegion(
+              region,
+              conversionLanding ? `/${conversionLanding}` : "/",
+            )}
             className="inline-flex items-center"
             aria-label="SILVARA"
           >
@@ -44,17 +68,25 @@ export function SiteHeader() {
               width={180}
               height={32}
               priority
-              className="h-7 w-auto md:h-8"
+              className={cn(
+                "h-6 w-auto md:h-8",
+                isOdorLanding && "brightness-0 invert",
+              )}
               style={{ width: "auto", height: "auto" }}
             />
           </Link>
-          {isGift ? (
-            <span className="font-mono-label truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground md:text-xs">
-              Gift set
+          {conversionLanding ? (
+            <span
+              className={cn(
+                "font-mono-label hidden truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] sm:inline md:text-xs",
+                isOdorLanding ? "text-white/45" : "text-muted-foreground",
+              )}
+            >
+              {conversionLanding === "gift" ? "Gift set" : "Fresh sock system"}
             </span>
           ) : null}
         </div>
-          {isGift ? null : (
+          {minimalHeader ? null : (
             <nav
               className="hidden max-w-xl flex-1 flex-wrap items-center justify-end gap-x-4 gap-y-1 md:flex"
               aria-label="Primary"
@@ -70,25 +102,42 @@ export function SiteHeader() {
               ))}
             </nav>
           )}
-          {isGift ? <div className="flex-1" /> : null}
+          {minimalHeader ? <div className="flex-1" /> : null}
         <div className="flex items-center gap-2">
+          {isCheckout ? (
+            <span className="font-mono-label text-xs uppercase tracking-wider text-muted-foreground">
+              Secure checkout
+            </span>
+          ) : (
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-none border-2 border-foreground font-mono-label text-xs uppercase tracking-wider"
+            className={cn(
+              "font-mono-label text-xs uppercase tracking-wider",
+              isOdorLanding
+                ? "rounded-none border border-white/25 bg-white/5 text-white hover:bg-white/10"
+                : "rounded-none border-2 border-foreground",
+            )}
             onClick={() => setOpenCart(true)}
           >
             Cart
             <span
               className={cn(
-                "ml-2 inline-flex min-w-6 items-center justify-center border-2 border-foreground bg-accent px-1 text-[0.65rem] font-bold text-accent-foreground",
-                itemCount === 0 && "bg-muted text-muted-foreground",
+                "ml-2 inline-flex min-w-6 items-center justify-center px-1 text-[0.65rem] font-bold",
+                isOdorLanding
+                  ? "bg-[#b84a2d] text-white"
+                  : "border-2 border-foreground bg-accent text-accent-foreground",
+                itemCount === 0 &&
+                  (isOdorLanding
+                    ? "bg-white/10 text-white/50"
+                    : "bg-muted text-muted-foreground"),
               )}
             >
               {itemCount}
             </span>
           </Button>
+          )}
         </div>
       </div>
     </header>

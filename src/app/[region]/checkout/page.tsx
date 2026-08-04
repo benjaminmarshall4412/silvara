@@ -14,7 +14,13 @@ import { getStripePublishableKeyForRegion } from "@/lib/env.public";
 import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
-import { formatMoney, getProduct } from "@/lib/products";
+import {
+  SHIPPING_FEE_CENTS,
+  formatMoney,
+  getProduct,
+  qualifiesForFreeShipping,
+} from "@/lib/products";
+import { FIT_NOTE, RETURNS_PROMISE } from "@/lib/store-promises";
 import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
 import { trackMetaEvent } from "@/lib/meta/track-client";
 import { cartLineKey } from "@/lib/sock-sizes";
@@ -45,6 +51,8 @@ export default function CheckoutPage() {
   const discountCents =
     eligiblePromo && pct > 0 ? Math.round(subtotalCents * (pct / 100)) : 0;
   const estimatedTotalAfterPromo = Math.max(0, subtotalCents - discountCents);
+  const freeShipping = qualifiesForFreeShipping(lines);
+  const shippingCents = freeShipping ? 0 : SHIPPING_FEE_CENTS;
   const publishableKey = getStripePublishableKeyForRegion(region);
   const stripeCouponEnvName =
     region === "us"
@@ -95,16 +103,26 @@ export default function CheckoutPage() {
         );
         setClientSecret(payload.clientSecret);
 
-        void trackMetaEvent({
-          eventName: "InitiateCheckout",
-          customData: {
-            content_ids: lines.map((l) => l.id),
-            content_type: "product",
-            value: subtotalCents / 100,
-            currency: currency.toUpperCase(),
-            num_items: lines.reduce((n, l) => n + l.quantity, 0),
-          },
-        });
+        // Buy-now already fired InitiateCheckout on the CTA click.
+        let alreadySent = false;
+        try {
+          alreadySent = sessionStorage.getItem("silvara_meta_ic_sent") === "1";
+          if (alreadySent) sessionStorage.removeItem("silvara_meta_ic_sent");
+        } catch {
+          /* private mode / blocked storage */
+        }
+        if (!alreadySent) {
+          void trackMetaEvent({
+            eventName: "InitiateCheckout",
+            customData: {
+              content_ids: lines.map((l) => l.id),
+              content_type: "product",
+              value: subtotalCents / 100,
+              currency: currency.toUpperCase(),
+              num_items: lines.reduce((n, l) => n + l.quantity, 0),
+            },
+          });
+        }
       } catch (error) {
         if (error instanceof Error && error.name === "AbortError") return;
         const message = error instanceof Error ? error.message : "Unable to start checkout";
@@ -135,13 +153,13 @@ export default function CheckoutPage() {
           Cart empty
         </h1>
         <p className="mt-4 text-muted-foreground">
-          Add a loadout or rotation from the home page.
+          Add a pack to get started.
         </p>
         <Link
           href={loadouts}
-          className="mt-8 inline-flex h-12 cursor-pointer items-center border-4 border-foreground bg-accent px-6 font-heading text-sm font-extrabold uppercase text-accent-foreground"
+          className="mt-8 inline-flex h-12 cursor-pointer items-center rounded-none bg-accent px-6 font-heading text-sm font-extrabold uppercase text-accent-foreground"
         >
-          Back to loadouts
+          Shop the packs
         </Link>
       </div>
     );
@@ -162,7 +180,7 @@ export default function CheckoutPage() {
         Order summary
       </h1>
 
-      <div className="mt-10 border-4 border-foreground">
+      <div className="border-border/25 mt-8 overflow-hidden border bg-card">
         {lines.map((line) => {
           const p = getProduct(line.id);
           if (!p) return null;
@@ -171,7 +189,7 @@ export default function CheckoutPage() {
           return (
             <div
               key={lk}
-              className="flex justify-between border-b-2 border-foreground px-4 py-4 last:border-b-0"
+              className="border-border/20 flex justify-between border-b px-5 py-4 last:border-b-0"
             >
               <div>
                 <p className="font-heading font-extrabold uppercase">
@@ -193,13 +211,13 @@ export default function CheckoutPage() {
           );
         })}
         {discountCents > 0 ? (
-          <div className="border-border flex justify-between border-t-2 border-dashed px-4 py-3">
+          <div className="border-border/20 flex justify-between border-t border-dashed px-5 py-3">
             <span className="font-mono-label text-xs uppercase tracking-widest">Subtotal</span>
             <span className="font-mono-label text-sm font-medium">{formatMoney(subtotalCents, currency)}</span>
           </div>
         ) : null}
         {discountCents > 0 ? (
-          <div className="flex justify-between px-4 py-3">
+          <div className="flex justify-between px-5 py-3">
             <span className="font-mono-label text-xs uppercase tracking-widest text-muted-foreground">
               First-order savings · −{promo?.pct ?? 0}%
             </span>
@@ -208,15 +226,35 @@ export default function CheckoutPage() {
             </span>
           </div>
         ) : null}
-        <div className="flex justify-between bg-muted px-4 py-4">
+        <div className="border-border/20 flex justify-between border-t px-5 py-3">
+          <span className="font-mono-label text-xs uppercase tracking-widest text-muted-foreground">
+            Shipping
+          </span>
+          <span className="font-mono-label text-sm font-medium">
+            {freeShipping
+              ? "Free"
+              : `${formatMoney(SHIPPING_FEE_CENTS, currency)} standard`}
+          </span>
+        </div>
+        <div className="flex justify-between bg-muted px-5 py-4">
           <span className="font-mono-label text-xs uppercase tracking-widest">
             {discountCents > 0 ? "Estimated total" : "Total due"}
           </span>
           <span className="font-heading text-xl font-extrabold">
-            {formatMoney(discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents, currency)}
+            {formatMoney(
+              (discountCents > 0 ? estimatedTotalAfterPromo : subtotalCents) +
+                shippingCents,
+              currency,
+            )}
           </span>
         </div>
       </div>
+
+      <p className="mt-4 text-sm text-muted-foreground">
+        {[RETURNS_PROMISE, FIT_NOTE, "Secure Stripe checkout"]
+          .filter(Boolean)
+          .join(" · ")}
+      </p>
       {promo && promo.pct > 0 && !eligiblePromo ? (
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
           Add your email using the {promo.pct}% offer on the site first — totals here will reflect savings
@@ -248,7 +286,7 @@ export default function CheckoutPage() {
       ) : null}
 
       {showCheckoutSpinner ? (
-        <div className="border-foreground mt-10 border-4 px-6 py-8 text-center">
+        <div className="border-border/25 mt-8 border px-6 py-8 text-center">
           <p className="font-mono-label animate-pulse text-xs uppercase tracking-widest text-muted-foreground">
             Opening secure checkout…
           </p>
@@ -261,7 +299,7 @@ export default function CheckoutPage() {
           <Button
             type="button"
             size="lg"
-            className="h-14 w-full rounded-none border-2 border-transparent bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90"
+            className="h-14 w-full rounded-none border-0 bg-accent text-base font-extrabold uppercase tracking-wide text-accent-foreground hover:bg-accent/90"
             onClick={() => {
               setSessionError(null);
               void loadCheckoutSession();
@@ -294,7 +332,7 @@ export default function CheckoutPage() {
               promo cookie is sent.
             </div>
           ) : null}
-          <div className="border-foreground bg-[#f8f7f5] border-4 p-2 md:p-4">
+          <div className="border-border/25 border bg-[#f8f7f5] p-2 md:p-4">
             <EmbeddedCheckoutProvider
               stripe={stripePromise}
               options={{ clientSecret }}

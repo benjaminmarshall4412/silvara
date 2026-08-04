@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 
+import { isPurchaseCriticalPath } from "@/lib/conversion-landing-paths";
 import { SILVARA_MARKETING_EMAIL_LS } from "@/lib/marketing-email-storage";
 import { useSiteRegion } from "@/lib/site-region-context";
 import {
@@ -56,8 +57,8 @@ export function EmailPromoModal() {
   useEffect(() => {
     if (!isBrowser) return;
     if (typeof window === "undefined") return;
-    // Never interrupt Meta / gift landing conversion with the email modal
-    if (/\/(us|uk)\/gift\/?$/.test(pathname ?? "")) return;
+    // Never interrupt paid-traffic landings or the checkout itself.
+    if (isPurchaseCriticalPath(pathname)) return;
     try {
       if (localStorage.getItem(STORAGE_DISMISSED) === "1") return;
       // Legacy dismiss from the old 15% promo modal
