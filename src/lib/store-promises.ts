@@ -4,7 +4,7 @@
  */
 
 export const RETURNS_PROMISE: string | null =
-  "First Pair Guarantee — wear one, return two unworn within 30 days";
+  "First Pair Guarantee. Wear one, return two unworn within 30 days";
 
 export const FIT_NOTE: string | null =
   "Fits US men’s 7–13 and women’s 5–10";

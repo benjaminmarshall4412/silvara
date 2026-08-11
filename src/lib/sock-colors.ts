@@ -4,8 +4,8 @@ export type SockColor = (typeof SOCK_COLORS)[number];
 export const DEFAULT_SOCK_COLOR: SockColor = "black";
 
 export const SOCK_COLOR_LABEL: Record<SockColor, string> = {
-  black: "Black marl",
-  white: "White marl",
+  black: "Black",
+  white: "White",
 };
 
 export function isSockColor(value: unknown): value is SockColor {

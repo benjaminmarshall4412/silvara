@@ -32,7 +32,7 @@ export const blogPosts: BlogPostMeta[] = [
     date: "2026-03-01",
     eyebrow: "Workweek system",
     imageSrc: "/system.jpg",
-    imageAlt: "Flat lay — ordered crew socks with boots nearby",
+    imageAlt: "Flat lay — ordered low-calf socks with boots nearby",
     theme: "inverse",
   },
 ];

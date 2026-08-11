@@ -148,4 +148,4 @@ And finally: your feet are worth the investment. You're standing on them for 12 
 
 ---
 
-*SILVARA crew socks combine moisture-wicking performance with silver-infused yarns — built for trades, warehouse floors, and anyone who wears boots longer than office hours.*
+*SILVARA low-calf socks combine moisture-wicking performance with silver-infused yarns — built for trades, warehouse floors, and anyone who wears boots longer than office hours.*

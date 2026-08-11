@@ -30,7 +30,7 @@ const FAQ = [
   },
   {
     q: "Are these thick work socks?",
-    a: "No. Thin crew—more room in the shoe or boot.",
+    a: "No. Thin low-calf—more room in the shoe or boot.",
   },
   {
     q: "Does it stop all foot odor?",
@@ -229,7 +229,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
         <div className="mx-auto grid max-w-[1120px] gap-8 px-4 py-10 md:grid-cols-3 md:gap-10 md:px-6 md:py-12">
           {[
             ["He’ll use them", "Already in the boot-and-laundry routine."],
-            ["Thin crew fit", "Room in the toe box—not a thick work sock."],
+            ["Thin low-calf fit", "Room in the toe box—not a thick work sock."],
             ["Silver in the yarn", "Helps manage odor in the fabric."],
           ].map(([title, body]) => (
             <div key={title}>
@@ -255,7 +255,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
               Wet isn’t smell—bacteria is.
             </h2>
             <p className="mt-4 text-base leading-relaxed text-foreground/75 md:text-lg">
-              Heat and hours in a closed shoe leave odor in the sock. Sprays
+              Heat and hours in work boots leave odor in the sock. Sprays
               treat the shoe. SILVARA changes the layer on his foot.
             </p>
           </div>
@@ -273,7 +273,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
                 SILVARA
               </p>
               <p className="mt-1 text-sm leading-relaxed text-foreground/70">
-                Silver-infused yarn. Thin crew for boots and everyday wear.
+                Silver-infused yarn. Thin low-calf for boots and everyday wear.
               </p>
             </div>
           </div>
@@ -291,7 +291,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
               Three pairs. One color. Free shipping.
             </h2>
             <p className="mt-4 max-w-md text-base leading-relaxed text-background/75">
-              Matching thin crew socks in black or white marl. Same sock as the
+              Matching thin low-calf socks in black or white. Same sock as the
               main line—gift-ready as a workweek set.
             </p>
           </div>
@@ -317,7 +317,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
             <dl className="mt-6 space-y-0 border-t-2 border-foreground">
               {[
                 ["Contents", "3 pairs"],
-                ["Height", "Thin crew"],
+                ["Height", "Low calf"],
                 ["Colors", "Black or white marl"],
                 ["Fit", "One size"],
                 ["Yarn", "Silver-infused blend"],

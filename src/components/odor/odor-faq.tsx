@@ -18,54 +18,54 @@ type FaqItem = {
 const FAQ_SOURCE: FaqItem[] = [
   {
     id: "expect",
-    q: "What should I expect?",
-    a: "Silvara is designed to help keep worn socks fresher through long days in closed shoes. Clean feet, clean shoes, and rotating a fresh pair each day give you the best result.",
+    q: "Do these stop sock smell?",
+    a: "Yes. Silvara gets rid of odor in the sock, so your feet don’t stink. Clean feet and clean shoes help too.",
   },
   {
     id: "eliminate",
-    q: "Will Silvara eliminate all odor?",
-    a: "No sock can guarantee zero odor in every situation. Silvara is designed to help reduce odor buildup in the fabric. Results depend on activity, footwear, temperature and how long the socks are worn.",
+    q: "What if they still smell?",
+    a: "Use the First Pair Guarantee. Wear one pair. If you hate them in 30 days, send the other two back unused and get your sock money back.",
   },
   {
     id: "thick",
-    q: "Are the socks thick?",
-    a: "Silvara is a thin crew sock without bulky cushioning. It is designed for everyday shoes and work boots.",
+    q: "Are they thick?",
+    a: "No. Thin low-calf socks. They fit normal shoes and work boots.",
   },
   {
     id: "sizes",
-    q: "What shoe sizes do they fit?",
+    q: "What sizes?",
     a: ODOR_PRODUCT.shoeSizeRange,
   },
   {
     id: "material",
-    q: "What are they made from?",
+    q: "What are they made of?",
     a: "20% silver fiber, 60% bamboo cotton, and 20% spandex.",
   },
   {
     id: "silver",
-    q: "How does the silver-infused yarn work?",
-    a: "Silvara uses silver-infused yarn to help control odor where it develops, inside the fabric against your foot. It does not rely on added fragrance or another shoe spray.",
+    q: "How does the silver work?",
+    a: "Silver fiber is in the yarn. It eliminates odor in the sock. No perfume. No spray.",
   },
   {
     id: "wash-out",
     q: "Does the silver wash out?",
-    a: "No. The silver is woven into the yarn, so it does not wash out.",
+    a: "No. It stays in the yarn.",
   },
   {
     id: "wash",
-    q: "How should I wash them?",
+    q: "How do I wash them?",
     a: ODOR_PRODUCT.washInstructions,
   },
   {
     id: "ship",
-    q: "How quickly will my order arrive?",
+    q: "How fast do they ship?",
     a: ODOR_PRODUCT.shippingEstimate,
   },
   {
     id: "guarantee",
-    q: "How does the First Pair Guarantee work?",
+    q: "How does the guarantee work?",
     a: ODOR_PRODUCT.guaranteeEnabled
-      ? "Wear one pair. If Silvara does not perform as expected within 30 days of delivery, contact us through the site form and return the other two pairs unworn for a product refund. Original shipping is not refunded, and you pay return shipping."
+      ? "Wear one pair. If you don't like them within 30 days, contact us and send the other two pairs back unused. You get the sock money back. Not shipping. You pay to ship the unused pairs back."
       : null,
   },
 ];
@@ -91,8 +91,8 @@ export function OdorFaq() {
   return (
     <section id="odor-faq" className="scroll-mt-24 px-4 pb-16 sm:px-6 sm:pb-24 lg:px-10">
       <div className="mx-auto max-w-3xl">
-        <h2 className="font-heading text-[clamp(2rem,4vw,3rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.03em]">
-          Questions before you buy
+        <h2 className="font-sans text-[clamp(2rem,4vw,3rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.03em]">
+          Questions
         </h2>
         <div className="mt-8 divide-y divide-[#21130e]/15 border-y border-[#21130e]/20">
           {items.map((item) => {

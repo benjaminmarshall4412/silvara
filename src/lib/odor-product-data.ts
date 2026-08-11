@@ -45,26 +45,27 @@ export type OdorSiteLink = {
 };
 
 export const ODOR_PRODUCT = {
-  name: "Silvara 3-Pack",
+  name: "Silvara socks · 3 pairs",
   bundleId: "triple" as const,
   priceCents: 4800,
   unitPriceCents: 1600,
   quantity: 3,
   colors: [
     {
-      name: "Black Marl",
+      name: "Black",
       value: "black" as SockColor,
-      image: "/black-pdp-2.png",
+      image: "/3pack.png",
       gallery: [
-        "/black-pdp-2.png",
-        "/black-pdp-3.png",
-        "/black-pdp-5.png",
-        "/black-pdp-4.png",
-        "/black-pdp-1.png",
+        "/3pack.png", // 3-pack hero
+        "/smellysock.png", // normal vs Silvara odor comparison
+        "/silverinyarn.png", // silver in the yarn
+        "/odor-black-4.png", // up to 4 days
+        "/odor-black-5.png", // wear like normal socks
+        "/odor-black-6.png", // try 1 / return 2
       ],
     },
     {
-      name: "White Marl",
+      name: "White",
       value: "white" as SockColor,
       image: "/white-pdp-4.png",
       gallery: [
@@ -80,11 +81,11 @@ export const ODOR_PRODUCT = {
   /** Confirmed storefront facts */
   freeShippingOnThisOffer: true,
   noAccountRequired: true,
-  cushioningLevel: "No bulky cushioning — thin crew profile",
-  sockHeight: "Thin crew",
-  packageContents: "Three pairs of thin crew socks",
-  washInstructions: "Machine wash cold. Tumble dry low. Do not bleach.",
-  shoeSizeRange: "Fits US men’s 7–13 and women’s 5–10",
+  cushioningLevel: "Thin. No thick padding.",
+  sockHeight: "Low calf",
+  packageContents: "3 pairs of socks",
+  washInstructions: "Wash like any other sock.",
+  shoeSizeRange: "US men’s 7–13 · women’s 5–10",
   materialComposition: "20% silver fiber · 60% bamboo cotton · 20% spandex",
 
   // TODO: confirm before launch — hidden in production while null
@@ -98,7 +99,7 @@ export const ODOR_PRODUCT = {
    */
   guaranteeEnabled: true,
   guaranteeSummary:
-    "First Pair Guarantee — wear one, return the other two unworn within 30 days",
+    "Try 1 pair. Return 2 unused within 30 days for a product refund",
   guaranteeTerms:
     "Wear one pair. If Silvara does not perform as expected within 30 days of delivery, contact us and return the other two pairs unworn for a product refund. Original shipping is not refunded. You pay return shipping.",
 

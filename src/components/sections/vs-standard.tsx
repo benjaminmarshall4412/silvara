@@ -14,7 +14,7 @@ const rows = [
   {
     metric: "Profile",
     standard: "Thick / loose",
-    silversocks: "Thin crew — room in the toe box",
+    silversocks: "Thin low-calf — room in the toe box",
   },
 ] as const;
 
@@ -28,7 +28,7 @@ export function VsStandard() {
       <div className="mx-auto max-w-6xl">
         <Image
           src="/vs-compare-strip.png"
-          alt="Typical thick crew sock beside SILVARA thin crew sock — same surface and lighting"
+          alt="Typical thick crew sock beside SILVARA thin low-calf sock — same surface and lighting"
           width={1916}
           height={821}
           sizes="(max-width: 1200px) 100vw, 1152px"

@@ -32,7 +32,7 @@ export function SystemVsSession({ region }: { region: SiteRegion }) {
           Junk drawer vs workweek
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-snug text-foreground md:text-lg">
-          Boots and laundry planned; socks are the gap. Short reads on the thin silver crew.
+          Boots and laundry planned; socks are the gap. Short reads on the thin silver low-calf.
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

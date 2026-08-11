@@ -36,7 +36,7 @@ function blackWhiteMarlGalleries(packName: string): ProductColorVariant[] {
       label: "Black",
       images: nshots.map((n) => ({
         src: `/black1pair-${n}.png`,
-        alt: `SILVARA ${packName} black marl thin crew — product photo ${n}`,
+        alt: `SILVARA ${packName} black marl thin low-calf — product photo ${n}`,
       })),
     },
     {
@@ -44,7 +44,7 @@ function blackWhiteMarlGalleries(packName: string): ProductColorVariant[] {
       label: "White",
       images: nshots.map((n) => ({
         src: `/white1pair-${n}.png`,
-        alt: `SILVARA ${packName} white marl thin crew — product photo ${n}`,
+        alt: `SILVARA ${packName} white marl thin low-calf — product photo ${n}`,
       })),
     },
   ];
@@ -54,16 +54,16 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
   single: {
     heroImage: "/black1pair-1.png",
     heroAlt:
-      "SILVARA single pair — black or white marl thin crew sock for work boots",
+      "SILVARA single pair — black or white marl thin low-calf sock for work boots",
     colorVariants: blackWhiteMarlGalleries("single pair"),
     highlights: [
       "Silver-infused yarn — odor bacteria on the fiber, not a perfume cover-up",
-      "Thin crew height — boot-friendly toe box and calf",
+      "Thin low-calf height — boot-friendly toe box and calf",
       "Built for long shifts, hard floors, and laundry you can keep up with",
     ],
     specs: [
       { label: "Contents", value: "1 pair" },
-      { label: "Style", value: "Thin crew" },
+      { label: "Style", value: "Thin low-calf" },
       { label: "Yarn", value: "Silver-infused blend (see care tag)" },
       { label: "Best for", value: "Trial fit, first wash cycle, toe-box check" },
       { label: "Care", value: "Machine wash cold · tumble low · no bleach" },
@@ -75,7 +75,7 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
   triple: {
     heroImage: "/black1pair-1.png",
     heroAlt:
-      "SILVARA 3-pack — black or white marl thin crew socks, workweek rotation",
+      "SILVARA 3-pack — black or white marl thin low-calf socks, workweek rotation",
     colorVariants: blackWhiteMarlGalleries("3-pack"),
     highlights: [
       "Enough pairs to rotate a full workweek without re-wearing damp socks",
@@ -84,7 +84,7 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
     ],
     specs: [
       { label: "Contents", value: "3 pairs" },
-      { label: "Style", value: "Thin crew" },
+      { label: "Style", value: "Thin low-calf" },
       { label: "Yarn", value: "Silver-infused blend (see care tag)" },
       { label: "Best for", value: "5-day rotation · main workweek kit" },
       { label: "Care", value: "Machine wash cold · tumble low · no bleach" },
@@ -96,7 +96,7 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
   six: {
     heroImage: "/black1pair-1.png",
     heroAlt:
-      "SILVARA 6-pack — black or white marl thin crew socks, best per-shift value",
+      "SILVARA 6-pack — black or white marl thin low-calf socks, best per-shift value",
     colorVariants: blackWhiteMarlGalleries("6-pack"),
     highlights: [
       "Best per-pair value in the line for people who live in their boots",
@@ -105,7 +105,7 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
     ],
     specs: [
       { label: "Contents", value: "6 pairs" },
-      { label: "Style", value: "Thin crew" },
+      { label: "Style", value: "Thin low-calf" },
       { label: "Yarn", value: "Silver-infused blend (see care tag)" },
       { label: "Best for", value: "Heavy rotation · overtime · two-person households" },
       { label: "Care", value: "Machine wash cold · tumble low · no bleach" },
@@ -118,14 +118,14 @@ export const PRODUCT_DETAIL_CONTENT: Record<BundleId, ProductDetailContent> = {
     heroImage: "/shipping.jpg",
     heroAlt: "SILVARA fresh rotation — scheduled resupply shipment",
     highlights: [
-      "Same thin crew as packs—subscription is delivery only",
+      "Same thin low-calf as packs—subscription is delivery only",
       "3 pairs/month · pause in Stripe before the next bill",
       "Silver yarn vs bacteria on the fiber—not perfume",
     ],
     specs: [
       { label: "Contents", value: "3 pairs per shipment" },
       { label: "Cadence", value: "Monthly (Stripe portal)" },
-      { label: "Style", value: "Thin crew" },
+      { label: "Style", value: "Thin low-calf" },
       { label: "Yarn", value: "Silver-infused blend (see care tag)" },
       { label: "Care", value: "Machine wash cold · tumble low · no bleach" },
     ],

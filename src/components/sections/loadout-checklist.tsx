@@ -6,7 +6,7 @@ const rows: LoadoutRow[] = [
   { title: "Boots & insoles dialed for the job" },
   { title: "Wash day that matches your shift count" },
   { title: "No damp re-wear between days" },
-  { title: "Fiber spec — silver-active crew sock", highlight: true },
+  { title: "Fiber spec — silver-active low-calf sock", highlight: true },
 ];
 
 export function LoadoutChecklist() {
@@ -40,7 +40,7 @@ export function LoadoutChecklist() {
               Serious work kit
             </h2>
             <p className="mt-3 max-w-xl text-base leading-snug text-foreground/90">
-              Boots and wash get love—socks get leftovers. SILVARA is the thin silver crew.
+              Boots and wash get love—socks get leftovers. SILVARA is the thin silver low-calf.
             </p>
 
             <ul className="mt-8 space-y-0 border-4 border-foreground">

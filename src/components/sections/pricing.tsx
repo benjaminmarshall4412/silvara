@@ -54,7 +54,7 @@ export function Pricing() {
         <div className="relative min-h-[min(78vh,880px)] w-full md:min-h-[min(85vh,960px)]">
           <Image
             src={heroSrc}
-            alt="Worker in boots — SILVARA silver-infused thin crew work socks for long shifts"
+            alt="Worker in boots — SILVARA silver-infused thin low-calf work socks for long shifts"
             fill
             priority
             sizes="100vw"
@@ -74,7 +74,7 @@ export function Pricing() {
                 id="hero-heading"
                 className="font-heading mt-4 text-pretty text-2xl font-extrabold uppercase leading-[1.05] tracking-tight text-background/95 sm:text-3xl md:mt-5 md:text-4xl"
               >
-                Thin crew for work boots.
+                Thin low-calf for work boots.
               </h1>
               <p className="mt-4 max-w-md text-base font-medium leading-snug text-background/80 md:text-lg">
                 Silver yarn that targets bacteria on the fiber—not a scent mask.

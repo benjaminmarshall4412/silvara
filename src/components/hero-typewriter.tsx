@@ -8,7 +8,7 @@ const WORDS = [
   "Silver yarn",
   "Not perfume",
   "Bacteria on fiber",
-  "Thin crew fit",
+  "Thin low-calf fit",
   "Same sock every pack",
 ] as const;
 

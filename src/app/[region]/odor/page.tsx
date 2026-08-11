@@ -9,13 +9,13 @@ type Props = {
 };
 
 export const metadata: Metadata = {
-  title: "SILVARA — Long shifts. Less sock odor.",
+  title: "SILVARA — Socks that smell less after work",
   description:
-    "Thin crew socks with silver fiber woven into the yarn to help control odor in the fabric. Three pairs. Free shipping. No fragrance.",
+    "Thin low-calf socks with silver fiber in the yarn. Eliminates odor in the sock. Buy 3 pairs. Free shipping. No fragrance.",
   openGraph: {
-    title: "Long shifts. Less sock odor.",
+    title: "Socks that smell less after work",
     description:
-      "Thin silver-infused crew socks for long shifts in closed shoes. Three pairs. Free shipping.",
+      "Thin silver-infused low-calf socks for work boots and long days. Eliminates odor. Buy 3 pairs. Free shipping.",
     images: ["/black1pair-1.png"],
   },
 };

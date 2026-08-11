@@ -10,7 +10,7 @@ const cases = [
   },
   {
     title: "Trades & job site",
-    line: "Boots, ladders, dust — toe box packed; thin crew keeps stack low.",
+    line: "Boots, ladders, dust — toe box packed; thin low-calf keeps stack low.",
     imageSrc: "/tradejob.png",
     imageAlt: "Job site and trades — boots, ladders, and dust on the shift",
   },

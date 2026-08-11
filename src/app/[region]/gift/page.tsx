@@ -11,13 +11,13 @@ type Props = {
 };
 
 export const metadata: Metadata = {
-  title: "SILVARA 3-Pack Gift Set — Thin silver crew socks",
+  title: "SILVARA 3-Pack Gift Set — Thin silver low-calf socks",
   description:
-    "Three pairs of thin silver-infused crew socks for long shifts and work boots. Free shipping. Black or white. One size.",
+    "Three pairs of thin silver-infused low-calf socks for long shifts and work boots. Free shipping. Black or white. One size.",
   openGraph: {
     title: "SILVARA 3-Pack Gift Set",
     description:
-      "A useful gift for long shifts—thin silver crew socks with free shipping.",
+      "A useful gift for long shifts—thin silver low-calf socks with free shipping.",
   },
 };
 

@@ -25,17 +25,17 @@ const ibmMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.silvara.org"),
-  title: "SILVARA — Silver thin crew work socks",
+  title: "SILVARA — Silver thin low-calf work socks",
   description:
-    "Thin crew socks with silver in the yarn—boots, long shifts. 1, 3, 6 pairs or 3/month subscribed. Bacteria on the fiber, not perfume.",
+    "Thin low-calf socks with silver in the yarn—boots, long shifts. 1, 3, 6 pairs or 3/month subscribed. Bacteria on the fiber, not perfume.",
   icons: {
     icon: "/silvarafavicon.jpg",
     shortcut: "/silvarafavicon.jpg",
     apple: "/silvarafavicon.jpg",
   },
   openGraph: {
-    title: "SILVARA — Silver thin crew work socks",
-    description: "Work-boot thin crews—packs or 3 pairs/month. Not a perfume mask.",
+    title: "SILVARA — Silver thin low-calf work socks",
+    description: "Work-boot thin low-calf socks—packs or 3 pairs/month. Not a perfume mask.",
   },
 };
 

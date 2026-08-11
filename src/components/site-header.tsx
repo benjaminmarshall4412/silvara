@@ -75,14 +75,9 @@ export function SiteHeader() {
               style={{ width: "auto", height: "auto" }}
             />
           </Link>
-          {conversionLanding ? (
-            <span
-              className={cn(
-                "font-mono-label hidden truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] sm:inline md:text-xs",
-                isOdorLanding ? "text-white/45" : "text-muted-foreground",
-              )}
-            >
-              {conversionLanding === "gift" ? "Gift set" : "Fresh sock system"}
+          {conversionLanding === "gift" ? (
+            <span className="font-mono-label hidden truncate text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground sm:inline md:text-xs">
+              Gift set
             </span>
           ) : null}
         </div>

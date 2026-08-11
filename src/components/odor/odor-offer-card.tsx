@@ -147,8 +147,8 @@ export function OdorBuyStrip({
     <div id={id} className="text-[#21130e]">
       {showTitle ? (
         <>
-          <h2 className="font-heading text-2xl font-extrabold uppercase tracking-tight">
-            {ODOR_PRODUCT.name}
+          <h2 className="font-sans text-2xl font-extrabold uppercase tracking-tight">
+            3 pairs of Silvara socks
           </h2>
           <StarSummary />
         </>
@@ -178,7 +178,7 @@ export function OdorBuyStrip({
         id={ODOR_PRODUCT.bundleId}
         sockSize={DEFAULT_SOCK_SIZE}
         sockColor={sockColor}
-        label={`Try the 3-pack — ${priceLabel}`}
+        label={`Buy 3 pairs · ${priceLabel}`}
         flow="buy-now"
         onAdd={() => {
           posthog.capture("odor_cta_clicked", {
