@@ -67,13 +67,14 @@ export const ODOR_PRODUCT = {
     {
       name: "White",
       value: "white" as SockColor,
-      image: "/white-pdp-4.png",
+      image: "/white-3pack.png",
       gallery: [
-        "/white-pdp-4.png",
-        "/white-pdp-1.png",
-        "/white-pdp-2.png",
-        "/white-pdp-5.png",
-        "/white-pdp-3.png",
+        "/white-3pack.png", // 3-pack hero
+        "/white-smellysock.png", // normal vs Silvara odor comparison
+        "/white-silverinyarn.png", // silver in the yarn
+        "/odor-white-4.png", // up to 4 days
+        "/odor-white-5.png", // wear like normal socks
+        "/odor-white-6.png", // try 1 / return 2
       ],
     },
   ],
