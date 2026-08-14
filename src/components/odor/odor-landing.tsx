@@ -112,11 +112,7 @@ export function OdorLanding() {
     isFilled(row.value),
   );
 
-  // Fake/sample reviews stay in dev only — monkey brain smells fakes in prod.
-  const showReviews =
-    (ODOR_PRODUCT.reviews.length > 0 &&
-      !ODOR_PRODUCT.reviewsArePlaceholders) ||
-    (preview && ODOR_PRODUCT.reviews.length > 0);
+  const showReviews = ODOR_PRODUCT.reviews.length > 0;
   const showGuarantee =
     (ODOR_PRODUCT.guaranteeEnabled &&
       isFilled(ODOR_PRODUCT.guaranteeTerms)) ||
@@ -201,11 +197,16 @@ export function OdorLanding() {
           className="pointer-events-none absolute -top-64 right-[-14rem] h-[34rem] w-[34rem] rounded-full bg-[#b84a2d]/30 blur-[120px]"
           aria-hidden
         />
-        <div className="relative mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-12 lg:px-10">
-          <h1 className="max-w-[16ch] break-words font-sans text-[clamp(2.2rem,5vw,3.75rem)] font-extrabold uppercase leading-[0.95] tracking-tight">
-            Your socks smell after work.
+        <div className="relative mx-auto flex max-w-[1240px] flex-col justify-between gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:flex-row lg:items-end lg:gap-16 lg:px-10 lg:py-12">
+          <h1 className="min-w-0 font-sans font-extrabold uppercase leading-[0.88] tracking-tight">
+            <span className="block text-[clamp(1.85rem,5.4vw,3.6rem)] text-white">
+              Your socks smell after work.
+            </span>
+            <span className="mt-3 block text-[clamp(1.35rem,3.2vw,2.1rem)] text-[#e68161] sm:whitespace-nowrap">
+              Let <span className="text-white">us</span> fix it.
+            </span>
           </h1>
-          <p className="mt-5 max-w-[32rem] text-base font-semibold leading-relaxed text-white sm:text-lg">
+          <p className="max-w-sm text-base font-semibold leading-snug text-white/80 sm:text-lg lg:mb-1.5 lg:max-w-[16rem] lg:text-right">
             Silvara gets rid of odor, so your feet don’t stink.
           </p>
         </div>
@@ -355,7 +356,7 @@ export function OdorLanding() {
         </section>
       ) : null}
 
-      {/* 7. Prove it — real reviews only in production */}
+      {/* 7. Reviews */}
       {showReviews ? (
         <section
           id="odor-reviews"

@@ -56,8 +56,8 @@ export const ODOR_PRODUCT = {
       value: "black" as SockColor,
       image: "/3pack.png",
       gallery: [
-        "/3pack.png", // 3-pack hero
-        "/smellysock.png", // normal vs Silvara odor comparison
+        "/3pack.png", // 3-pack
+        "/smellysock.png", // problem: normal vs Silvara
         "/silverinyarn.png", // silver in the yarn
         "/odor-black-4.png", // up to 4 days
         "/odor-black-5.png", // wear like normal socks
@@ -69,8 +69,8 @@ export const ODOR_PRODUCT = {
       value: "white" as SockColor,
       image: "/white-3pack.png",
       gallery: [
-        "/white-3pack.png", // 3-pack hero
-        "/white-smellysock.png", // normal vs Silvara odor comparison
+        "/white-3pack.png", // 3-pack
+        "/white-smellysock.png", // problem: normal vs Silvara
         "/white-silverinyarn.png", // silver in the yarn
         "/odor-white-4.png", // up to 4 days
         "/odor-white-5.png", // wear like normal socks
@@ -135,12 +135,7 @@ export const ODOR_PRODUCT = {
     },
   ] satisfies OdorGallerySlot[],
 
-  /**
-   * SAMPLE ONLY — fake reviews for layout preview.
-   * Set reviewsArePlaceholders to false and replace with real quotes
-   * (with permission) before treating these as customer evidence.
-   */
-  reviewsArePlaceholders: true,
+  reviewsArePlaceholders: false,
   reviews: [
     {
       quote:

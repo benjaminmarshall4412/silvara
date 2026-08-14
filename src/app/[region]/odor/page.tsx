@@ -9,11 +9,11 @@ type Props = {
 };
 
 export const metadata: Metadata = {
-  title: "SILVARA — Socks that smell less after work",
+  title: "SILVARA — Let us fix the smell after work",
   description:
     "Thin low-calf socks with silver fiber in the yarn. Eliminates odor in the sock. Buy 3 pairs. Free shipping. No fragrance.",
   openGraph: {
-    title: "Socks that smell less after work",
+    title: "Your socks smell after work. Let us fix it.",
     description:
       "Thin silver-infused low-calf socks for work boots and long days. Eliminates odor. Buy 3 pairs. Free shipping.",
     images: ["/black1pair-1.png"],
