@@ -16,7 +16,7 @@ import {
   SOCK_COLORS,
   type SockColor,
 } from "@/lib/sock-colors";
-import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
+import { DEFAULT_SOCK_SIZE, SOCK_SIZES, type SockSize } from "@/lib/sock-sizes";
 import { trackMetaEvent } from "@/lib/meta/track-client";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
@@ -88,12 +88,16 @@ function GiftPurchaseBlock({
   id,
   sockColor,
   setSockColor,
+  sockSize,
+  setSockSize,
   priceLabel,
   ctaLabel,
 }: {
   id: string;
   sockColor: SockColor;
   setSockColor: (c: SockColor) => void;
+  sockSize: SockSize;
+  setSockSize: (s: SockSize) => void;
   priceLabel: string;
   ctaLabel: string;
 }) {
@@ -104,15 +108,37 @@ function GiftPurchaseBlock({
           {priceLabel}
         </p>
         <p className="mt-2 text-sm leading-snug text-muted-foreground">
-          Free shipping · 3 pairs · one size
+          Free shipping · 3 pairs
         </p>
       </div>
 
       <ColorPicker id={id} value={sockColor} onChange={setSockColor} />
 
+      <div>
+        <p className="font-mono-label text-xs font-bold uppercase tracking-wide text-foreground">
+          Shoe size
+        </p>
+        <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7">
+          {SOCK_SIZES.map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => setSockSize(size)}
+              className={
+                sockSize === size
+                  ? "min-h-10 border-2 border-foreground bg-foreground font-mono text-sm font-bold text-background"
+                  : "min-h-10 border-2 border-foreground/25 bg-background font-mono text-sm font-bold text-foreground hover:border-foreground"
+              }
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <AddToCartButton
         id="triple"
-        sockSize={DEFAULT_SOCK_SIZE}
+        sockSize={sockSize}
         sockColor={sockColor}
         label={ctaLabel}
         className="!h-14 !text-sm md:!h-16 md:!text-base"
@@ -135,10 +161,11 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
     unitAmountCentsByBundle.triple ?? triple?.priceCents ?? 4800;
   const sixCents = unitAmountCentsByBundle.six ?? six?.priceCents ?? 7200;
   const singleCents =
-    unitAmountCentsByBundle.single ?? single?.priceCents ?? 1800;
+    unitAmountCentsByBundle.single ?? single?.priceCents ?? 2000;
   const priceLabel = formatMoney(tripleCents, currency);
 
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);
+  const [sockSize, setSockSize] = useState<SockSize>(DEFAULT_SOCK_SIZE);
   const [stickyVisible, setStickyVisible] = useState(false);
   const firstCtaRef = useRef<HTMLDivElement>(null);
 
@@ -198,6 +225,8 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
               id="gift-purchase-hero"
               sockColor={sockColor}
               setSockColor={setSockColor}
+              sockSize={sockSize}
+              setSockSize={setSockSize}
               priceLabel={priceLabel}
               ctaLabel="Add the 3-pack"
             />
@@ -213,6 +242,8 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
             id="gift-purchase-mobile"
             sockColor={sockColor}
             setSockColor={setSockColor}
+            sockSize={sockSize}
+            setSockSize={setSockSize}
             priceLabel={priceLabel}
             ctaLabel="Add the 3-pack"
           />
@@ -300,6 +331,8 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
               id="gift-purchase-mid"
               sockColor={sockColor}
               setSockColor={setSockColor}
+              sockSize={sockSize}
+              setSockSize={setSockSize}
               priceLabel={priceLabel}
               ctaLabel="Add the 3-pack"
             />
@@ -318,11 +351,11 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
               {[
                 ["Contents", "3 pairs"],
                 ["Height", "Low calf"],
-                ["Colors", "Black or white marl"],
-                ["Fit", "One size"],
+                ["Colors", "Black or white"],
+                ["Fit", "Pick shoe size"],
                 ["Yarn", "Silver-infused blend"],
                 ["Shipping", "Free on this set"],
-                ["Care", "Wash cold · tumble low · no bleach"],
+                ["Care", "Wash like any other sock"],
               ].map(([label, value]) => (
                 <div
                   key={label}

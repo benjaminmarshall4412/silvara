@@ -196,7 +196,7 @@ export default function CheckoutPage() {
                   {p.name} × {line.quantity}
                 </p>
                 <p className="mt-1 font-mono-label text-[0.65rem] uppercase text-muted-foreground">
-                  {SOCK_COLOR_LABEL[line.sockColor]} · one size
+                  {SOCK_COLOR_LABEL[line.sockColor]} · size {line.sockSize}
                 </p>
                 {p.isSubscription && (
                   <p className="mt-1 font-mono-label text-[0.65rem] uppercase text-muted-foreground">

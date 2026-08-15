@@ -16,6 +16,7 @@
  * - Replace SAMPLE reviews with real customer permissioned quotes
  */
 
+import type { BundleId } from "@/lib/products";
 import type { SockColor } from "@/lib/sock-colors";
 
 export type OdorReview = {
@@ -44,49 +45,85 @@ export type OdorSiteLink = {
   href: string | null;
 };
 
+export type OdorPackId = "single" | "triple";
+
+export type OdorColorway = {
+  name: string;
+  value: SockColor;
+  singleImage: string;
+  tripleImage: string;
+  /** Shared shots after the pack hero. */
+  galleryRest: readonly string[];
+};
+
+export function odorGalleryFor(
+  colorway: OdorColorway,
+  pack: OdorPackId,
+): string[] {
+  const hero = pack === "single" ? colorway.singleImage : colorway.tripleImage;
+  return [hero, ...colorway.galleryRest];
+}
+
+export const ODOR_PACKS = [
+  {
+    id: "single" as const,
+    bundleId: "single" as BundleId,
+    label: "1 pair",
+    quantity: 1,
+    priceCents: 2000,
+    freeShipping: false,
+  },
+  {
+    id: "triple" as const,
+    bundleId: "triple" as BundleId,
+    label: "3 pairs",
+    quantity: 3,
+    priceCents: 4800,
+    freeShipping: true,
+  },
+] as const;
+
+export const DEFAULT_ODOR_PACK: OdorPackId = "triple";
+
 export const ODOR_PRODUCT = {
-  name: "Silvara socks · 3 pairs",
-  bundleId: "triple" as const,
-  priceCents: 4800,
-  unitPriceCents: 1600,
-  quantity: 3,
+  name: "Silvara socks",
   colors: [
     {
       name: "Black",
       value: "black" as SockColor,
-      image: "/3pack.png",
-      gallery: [
-        "/3pack.png", // 3-pack
-        "/smellysock.png", // problem: normal vs Silvara
-        "/silverinyarn.png", // silver in the yarn
-        "/odor-black-4.png", // up to 4 days
-        "/odor-black-5.png", // wear like normal socks
-        "/odor-black-6.png", // try 1 / return 2
+      singleImage: "/1pack.png",
+      tripleImage: "/3pack.png",
+      galleryRest: [
+        "/smellysock.png",
+        "/silverinyarn.png",
+        "/odor-black-4.png",
+        "/odor-black-5.png",
+        "/odor-black-6.png",
       ],
     },
     {
       name: "White",
       value: "white" as SockColor,
-      image: "/white-3pack.png",
-      gallery: [
-        "/white-3pack.png", // 3-pack
-        "/white-smellysock.png", // problem: normal vs Silvara
-        "/white-silverinyarn.png", // silver in the yarn
-        "/odor-white-4.png", // up to 4 days
-        "/odor-white-5.png", // wear like normal socks
-        "/odor-white-6.png", // try 1 / return 2
+      singleImage: "/1packwhite.png",
+      tripleImage: "/white-3pack.png",
+      galleryRest: [
+        "/white-smellysock.png",
+        "/white-silverinyarn.png",
+        "/odor-white-4.png",
+        "/odor-white-5.png",
+        "/odor-white-6.png",
       ],
     },
-  ],
+  ] satisfies OdorColorway[],
 
   /** Confirmed storefront facts */
-  freeShippingOnThisOffer: true,
   noAccountRequired: true,
   cushioningLevel: "Thin. No thick padding.",
   sockHeight: "Low calf",
-  packageContents: "3 pairs of socks",
+  packageContents: "1 pair or 3 pairs",
   washInstructions: "Wash like any other sock.",
-  shoeSizeRange: "US men’s 7–13 · women’s 5–10",
+  /** Size is chosen in the buy box — do not show a wide range here. */
+  shoeSizeRange: "Pick your shoe size",
   materialComposition: "20% silver fiber · 60% bamboo cotton · 20% spandex",
 
   // TODO: confirm before launch — hidden in production while null
@@ -94,7 +131,7 @@ export const ODOR_PRODUCT = {
   countryOfManufacture: null as string | null,
 
   /**
-   * First Pair Guarantee — approved business terms:
+   * First Pair Guarantee — approved business terms for the 3-pack:
    * wear 1 / return 2 unworn within 30 days; product refund only;
    * outbound shipping not refunded; customer pays return shipping.
    */
@@ -130,7 +167,7 @@ export const ODOR_PRODUCT = {
     {
       id: "both-colors",
       src: "/odor-life-4.png",
-      alt: "Black Marl and White Marl Silvara socks",
+      alt: "Black and white Silvara socks",
       aspect: "square",
     },
   ] satisfies OdorGallerySlot[],

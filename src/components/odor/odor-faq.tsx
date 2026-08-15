@@ -34,7 +34,7 @@ const FAQ_SOURCE: FaqItem[] = [
   {
     id: "sizes",
     q: "What sizes?",
-    a: ODOR_PRODUCT.shoeSizeRange,
+    a: "Pick your US men’s shoe size. Same sock ships for every size.",
   },
   {
     id: "material",

@@ -46,7 +46,7 @@ const catalog = [
     bundleId: "single",
     productName: "SILVARA 1 PAIR",
     description: "Single pair trial pack",
-    amount: 1800,
+    amount: 2000,
     lookupKey: LOOKUP_KEYS.single,
     envKey: `STRIPE_PRICE_SINGLE_${region.toUpperCase()}`,
   },

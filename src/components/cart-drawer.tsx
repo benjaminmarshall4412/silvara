@@ -120,7 +120,8 @@ export function CartDrawer() {
                         {p.name}
                       </p>
                       <p className="mt-1 font-mono-label text-[0.65rem] uppercase tracking-wide text-muted-foreground">
-                        {SOCK_COLOR_LABEL[line.sockColor]} · one size
+                        {SOCK_COLOR_LABEL[line.sockColor]} · size{" "}
+                        {line.sockSize}
                       </p>
                       {p.isSubscription ? (
                         <p className="mt-1 text-sm text-muted-foreground">

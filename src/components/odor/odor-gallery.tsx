@@ -9,16 +9,18 @@ import { cn } from "@/lib/utils";
 export function OdorGallery({
   images,
   sockColor,
+  packKey,
 }: {
   images: readonly string[];
   sockColor: SockColor;
+  /** When pack changes, jump back to the hero shot. */
+  packKey?: string;
 }) {
   const [active, setActive] = useState(0);
 
-  // Reset to the primary shot whenever the colorway changes.
   useEffect(() => {
     setActive(0);
-  }, [sockColor]);
+  }, [sockColor, packKey]);
 
   const colorLabel = SOCK_COLOR_LABEL[sockColor];
   const safeIndex = Math.min(active, Math.max(0, images.length - 1));

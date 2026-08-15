@@ -35,7 +35,7 @@ export const PRODUCTS: Product[] = [
     name: "1 PAIR",
     shortName: "Single",
     stripeLookupKey: "silvara_single_usd_onetime_v1",
-    priceCents: 1800,
+    priceCents: 2000,
     unitNote: "$5.95 shipping at checkout.",
     description: "Same thin silver low-calf as the packs—fit, wash, toe box before you buy more.",
   },

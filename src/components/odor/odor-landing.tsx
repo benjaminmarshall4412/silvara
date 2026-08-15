@@ -10,9 +10,13 @@ import { OdorGallery } from "@/components/odor/odor-gallery";
 import { OdorBuyStrip } from "@/components/odor/odor-offer-card";
 import { trackMetaEvent } from "@/lib/meta/track-client";
 import {
+  DEFAULT_ODOR_PACK,
+  ODOR_PACKS,
   ODOR_PRODUCT,
   isFilled,
   isOdorPreviewMode,
+  odorGalleryFor,
+  type OdorPackId,
 } from "@/lib/odor-product-data";
 import { formatMoney, getProduct } from "@/lib/products";
 import { useSiteRegion } from "@/lib/site-region-context";
@@ -22,7 +26,7 @@ import {
   SOCK_COLOR_LABEL,
   type SockColor,
 } from "@/lib/sock-colors";
-import { DEFAULT_SOCK_SIZE } from "@/lib/sock-sizes";
+import { DEFAULT_SOCK_SIZE, type SockSize } from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
@@ -70,27 +74,33 @@ export function OdorLanding() {
   const preview = isOdorPreviewMode();
   const { unitAmountCentsByBundle, currency, ready } =
     useStripeCatalogPrices();
-  const triple = getProduct(ODOR_PRODUCT.bundleId);
-  const tripleCents =
-    unitAmountCentsByBundle.triple ??
-    triple?.priceCents ??
-    ODOR_PRODUCT.priceCents;
-  const priceLabel = formatMoney(tripleCents, currency);
 
+  const [pack, setPack] = useState<OdorPackId>(DEFAULT_ODOR_PACK);
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);
+  const [sockSize, setSockSize] = useState<SockSize>(DEFAULT_SOCK_SIZE);
   const [stickyVisible, setStickyVisible] = useState(false);
   const heroOfferRef = useRef<HTMLDivElement>(null);
   const faqSentinelRef = useRef<HTMLDivElement>(null);
   const viewTrackedRef = useRef(false);
 
+  const packMeta =
+    ODOR_PACKS.find((p) => p.id === pack) ??
+    ODOR_PACKS.find((p) => p.id === DEFAULT_ODOR_PACK)!;
+  const catalogCents =
+    unitAmountCentsByBundle[packMeta.bundleId] ??
+    getProduct(packMeta.bundleId)?.priceCents ??
+    packMeta.priceCents;
+  const priceLabel = formatMoney(catalogCents, currency);
+
   const colorMeta =
     ODOR_PRODUCT.colors.find((c) => c.value === sockColor) ??
     ODOR_PRODUCT.colors[0];
+  const galleryImages = odorGalleryFor(colorMeta, pack);
 
   const detailRows = [
     {
       label: "Shoe size",
-      value: ODOR_PRODUCT.shoeSizeRange,
+      value: "Pick your size",
     },
     { label: "Sock height", value: ODOR_PRODUCT.sockHeight },
     {
@@ -135,20 +145,20 @@ export function OdorLanding() {
     viewTrackedRef.current = true;
     posthog.capture("odor_landing_viewed", {
       region,
-      bundle_id: ODOR_PRODUCT.bundleId,
+      bundle_id: packMeta.bundleId,
       landing_path: "odor-focused",
     });
     void trackMetaEvent({
       eventName: "ViewContent",
       customData: {
-        content_ids: [ODOR_PRODUCT.bundleId],
+        content_ids: [packMeta.bundleId],
         content_type: "product",
-        content_name: "SILVARA 3-Pack",
-        value: tripleCents / 100,
+        content_name: "SILVARA socks",
+        value: catalogCents / 100,
         currency: currency.toUpperCase(),
       },
     });
-  }, [currency, ready, region, tripleCents]);
+  }, [catalogCents, currency, packMeta.bundleId, ready, region]);
 
   useEffect(() => {
     const offer = heroOfferRef.current;
@@ -200,7 +210,7 @@ export function OdorLanding() {
         <div className="relative mx-auto flex max-w-[1240px] flex-col justify-between gap-5 px-4 py-8 sm:px-6 sm:py-10 lg:flex-row lg:items-end lg:gap-16 lg:px-10 lg:py-12">
           <h1 className="min-w-0 font-sans font-extrabold uppercase leading-[0.88] tracking-tight">
             <span className="block text-[clamp(1.85rem,5.4vw,3.6rem)] text-white">
-              Your socks smell after work.
+              Your socks smell.
             </span>
             <span className="mt-3 block text-[clamp(1.35rem,3.2vw,2.1rem)] text-[#e68161] sm:whitespace-nowrap">
               Let <span className="text-white">us</span> fix it.
@@ -215,7 +225,11 @@ export function OdorLanding() {
       {/* 2. Buy */}
       <section className="px-4 py-8 sm:px-6 sm:py-12 lg:px-10">
         <div className="mx-auto grid max-w-[1160px] items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)] lg:gap-14">
-          <OdorGallery images={colorMeta.gallery} sockColor={sockColor} />
+          <OdorGallery
+            images={galleryImages}
+            sockColor={sockColor}
+            packKey={pack}
+          />
 
           <div
             ref={heroOfferRef}
@@ -224,9 +238,13 @@ export function OdorLanding() {
           >
             <OdorBuyStrip
               id="odor-offer-card"
+              pack={pack}
+              setPack={setPack}
               priceLabel={priceLabel}
               sockColor={sockColor}
               setSockColor={setSockColor}
+              sockSize={sockSize}
+              setSockSize={setSockSize}
               placement="hero"
             />
           </div>
@@ -499,18 +517,24 @@ export function OdorLanding() {
               Ready?
             </p>
             <h2 className="mt-3 max-w-[16ch] break-words font-sans text-[clamp(2.2rem,4.2vw,3.5rem)] font-extrabold uppercase leading-[0.92] tracking-[-0.035em]">
-              Buy three pairs.
+              {packMeta.id === "single" ? "Buy one pair." : "Buy three pairs."}
             </h2>
             <p className="mt-5 max-w-md text-base text-white/75 sm:text-lg">
-              Black or white. Free shipping.
+              {packMeta.freeShipping
+                ? "Black or white. Free shipping."
+                : "Black or white. Pick your size."}
             </p>
           </div>
           <div className="min-w-0 bg-[#fffaf2] p-5 text-[#21130e] sm:p-8">
             <OdorBuyStrip
               id="odor-final-offer"
+              pack={pack}
+              setPack={setPack}
               priceLabel={priceLabel}
               sockColor={sockColor}
               setSockColor={setSockColor}
+              sockSize={sockSize}
+              setSockSize={setSockSize}
               placement="final"
               showTitle={false}
             />
@@ -582,20 +606,22 @@ export function OdorLanding() {
               {priceLabel}
             </p>
             <p className="truncate text-sm text-[#5c514a]">
-              {SOCK_COLOR_LABEL[sockColor]}
+              {SOCK_COLOR_LABEL[sockColor]} · size {sockSize}
             </p>
           </div>
           <AddToCartButton
-            id={ODOR_PRODUCT.bundleId}
-            sockSize={DEFAULT_SOCK_SIZE}
+            id={packMeta.bundleId}
+            sockSize={sockSize}
             sockColor={sockColor}
-            label="Buy 3 pairs"
+            label={packMeta.id === "single" ? "Buy 1 pair" : "Buy 3 pairs"}
             flow="buy-now"
             onAdd={() => {
               posthog.capture("odor_sticky_cta_clicked", {
                 region,
-                bundle_id: ODOR_PRODUCT.bundleId,
+                bundle_id: packMeta.bundleId,
                 sock_color: sockColor,
+                sock_size: sockSize,
+                pack: packMeta.id,
               });
             }}
             className="!h-12 !min-w-[9.5rem] !w-auto shrink-0 !rounded-none !border-0 !bg-[#b84a2d] !px-4 !text-xs !text-white !shadow-none"
