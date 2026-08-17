@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { ContactForm } from "@/components/contact-form";
 import { SiteFooter } from "@/components/sections/site-footer";
 import { ODOR_PRODUCT } from "@/lib/odor-product-data";
-import { validateSiteRegionParam, withSiteRegion } from "@/lib/site-region";
+import { odorLandingPath, validateSiteRegionParam, withSiteRegion } from "@/lib/site-region";
 
 type Props = {
   params: Promise<{ region: string }>;
@@ -59,7 +59,7 @@ export default async function ContactPage({ params, searchParams }: Props) {
         </div>
 
         <Link
-          href={withSiteRegion(region, "/odor")}
+          href={withSiteRegion(region, odorLandingPath(region))}
           className="mt-8 inline-block text-sm font-semibold text-[#5c514a] underline-offset-2 hover:underline"
         >
           ← Back to Silvara

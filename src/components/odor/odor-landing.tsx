@@ -19,6 +19,7 @@ import {
   type OdorPackId,
 } from "@/lib/odor-product-data";
 import { formatMoney, getProduct } from "@/lib/products";
+import { getFallbackPriceCents, localizeOdorSpelling } from "@/lib/region-storefront";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import {
@@ -26,7 +27,10 @@ import {
   SOCK_COLOR_LABEL,
   type SockColor,
 } from "@/lib/sock-colors";
-import { DEFAULT_SOCK_SIZE, type SockSize } from "@/lib/sock-sizes";
+import {
+  getDefaultSockSizeForRegion,
+  type SockSize,
+} from "@/lib/sock-sizes";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
@@ -77,7 +81,9 @@ export function OdorLanding() {
 
   const [pack, setPack] = useState<OdorPackId>(DEFAULT_ODOR_PACK);
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);
-  const [sockSize, setSockSize] = useState<SockSize>(DEFAULT_SOCK_SIZE);
+  const [sockSize, setSockSize] = useState<SockSize>(() =>
+    getDefaultSockSizeForRegion(region),
+  );
   const [stickyVisible, setStickyVisible] = useState(false);
   const heroOfferRef = useRef<HTMLDivElement>(null);
   const faqSentinelRef = useRef<HTMLDivElement>(null);
@@ -89,13 +95,13 @@ export function OdorLanding() {
   const catalogCents =
     unitAmountCentsByBundle[packMeta.bundleId] ??
     getProduct(packMeta.bundleId)?.priceCents ??
-    packMeta.priceCents;
+    getFallbackPriceCents(packMeta.bundleId, region);
   const priceLabel = formatMoney(catalogCents, currency);
 
   const colorMeta =
     ODOR_PRODUCT.colors.find((c) => c.value === sockColor) ??
     ODOR_PRODUCT.colors[0];
-  const galleryImages = odorGalleryFor(colorMeta, pack);
+  const galleryImages = odorGalleryFor(colorMeta, pack, region);
 
   const detailRows = [
     {
@@ -137,6 +143,10 @@ export function OdorLanding() {
       return { ...link, href };
     })
     .filter((link): link is { label: string; href: string } => Boolean(link));
+
+  useEffect(() => {
+    setSockSize(getDefaultSockSizeForRegion(region));
+  }, [region]);
 
   // Analytics: fire ViewContent once when catalog prices are ready.
   // InitiateCheckout fires from buy-now CTAs; Purchase fires on success.
@@ -217,7 +227,10 @@ export function OdorLanding() {
             </span>
           </h1>
           <p className="max-w-sm text-base font-semibold leading-snug text-white/80 sm:text-lg lg:mb-1.5 lg:max-w-[16rem] lg:text-right">
-            Silvara gets rid of odor, so your feet don’t stink.
+            {localizeOdorSpelling(
+              "Silvara gets rid of odor, so your feet don’t stink.",
+              region,
+            )}
           </p>
         </div>
       </section>
@@ -286,8 +299,10 @@ export function OdorLanding() {
             Silver is in the sock.
           </h2>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-[#5c514a] sm:text-lg">
-            Most socks just get smelly. Sprays hide the smell for a bit. Silvara
-            has silver fiber in the yarn. It eliminates odor in the sock.
+            {localizeOdorSpelling(
+              "Most socks just get smelly. Sprays hide the smell for a bit. Silvara has silver fiber in the yarn. It eliminates odor in the sock.",
+              region,
+            )}
           </p>
           <ul className="mt-8 grid gap-3">
             {MECHANISM.map((item) => (
@@ -298,7 +313,9 @@ export function OdorLanding() {
                 <h3 className="text-base font-extrabold uppercase tracking-wide">
                   {item.title}
                 </h3>
-                <p className="mt-1 text-base text-[#5c514a]">{item.body}</p>
+                <p className="mt-1 text-base text-[#5c514a]">
+                  {localizeOdorSpelling(item.body, region)}
+                </p>
               </li>
             ))}
           </ul>

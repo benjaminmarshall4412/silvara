@@ -11,10 +11,10 @@ import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import {
   FREE_SHIPPING_MIN_PAIRS,
-  SHIPPING_FEE_CENTS,
   countPairs,
   formatMoney,
   getProduct,
+  getShippingFeeCents,
 } from "@/lib/products";
 import { FIT_NOTE, RETURNS_PROMISE } from "@/lib/store-promises";
 import { SOCK_COLOR_LABEL } from "@/lib/sock-colors";
@@ -55,6 +55,7 @@ export function CartDrawer() {
 
   const pairs = countPairs(lines);
   const freeShipping = pairs >= FREE_SHIPPING_MIN_PAIRS;
+  const shippingFeeCents = getShippingFeeCents(region);
 
   const eligiblePromo =
     !!(promo && promo.pct > 0 && promo.claimedOnThisDevice);
@@ -244,7 +245,7 @@ export function CartDrawer() {
                 ? "—"
                 : freeShipping
                   ? "Free"
-                  : `${formatMoney(SHIPPING_FEE_CENTS, currency)} standard`}
+                  : `${formatMoney(shippingFeeCents, currency)} standard`}
             </span>
           </div>
           {!freeShipping && lines.length > 0 ? (

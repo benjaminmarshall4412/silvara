@@ -11,7 +11,7 @@ import {
   isCheckoutPath,
 } from "@/lib/conversion-landing-paths";
 import { useSiteRegion } from "@/lib/site-region-context";
-import { withSiteRegion } from "@/lib/site-region";
+import { odorLandingPath, withSiteRegion } from "@/lib/site-region";
 import { cn } from "@/lib/utils";
 
 const navKeys = [
@@ -57,7 +57,11 @@ export function SiteHeader() {
           <Link
             href={withSiteRegion(
               region,
-              conversionLanding ? `/${conversionLanding}` : "/",
+              conversionLanding === "odor"
+                ? odorLandingPath(region)
+                : conversionLanding
+                  ? `/${conversionLanding}`
+                  : "/",
             )}
             className="inline-flex items-center"
             aria-label="SILVARA"

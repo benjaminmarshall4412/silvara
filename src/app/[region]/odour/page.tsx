@@ -15,6 +15,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "SILVARA — Your socks smell. Let us fix it.",
       description:
         "Thin low-calf socks with silver fibre in the yarn. Eliminates odour in the sock. 1 pair or 3 pairs. Free shipping on 3.",
+      openGraph: {
+        title: "Your socks smell. Let us fix it.",
+        description:
+          "Thin silver-infused low-calf socks for work boots and long days. Eliminates odour. 1 pair or 3 pairs.",
+        images: ["/black1pair-1.png"],
+      },
     };
   }
   return {
@@ -30,10 +36,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function OdorPage({ params }: Props) {
+export default async function OdourPage({ params }: Props) {
   const region = validateSiteRegionParam((await params).region);
   if (!region) notFound();
-  if (region === "uk") redirect("/uk/odour");
+  if (region === "us") redirect("/us/odor");
 
   return <OdorLanding />;
 }

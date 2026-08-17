@@ -17,6 +17,8 @@ export function validateSiteRegionParam(value: string): SiteRegion | null {
 /**
  * Prefix an internal path with the regional segment (`/blog` → `/us/blog`, `/#x` → `/us#x`).
  */
+export { odorLandingPath } from "@/lib/region-storefront";
+
 export function withSiteRegion(region: SiteRegion, path: string): string {
   const hashIdx = path.indexOf("#");
   const pathOnly = hashIdx >= 0 ? path.slice(0, hashIdx) : path;

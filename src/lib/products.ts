@@ -83,7 +83,10 @@ export const PAIRS_PER_BUNDLE: Record<BundleId, number> = {
 
 /** Storefront copy and Stripe shipping rates must agree on these. */
 export const FREE_SHIPPING_MIN_PAIRS = 3;
+/** @deprecated Use getShippingFeeCents(region) from region-storefront */
 export const SHIPPING_FEE_CENTS = 595;
+
+export { getShippingFeeCents } from "@/lib/region-storefront";
 
 export function countPairs(
   lines: readonly { id: BundleId; quantity: number }[],

@@ -18,6 +18,7 @@
 
 import type { BundleId } from "@/lib/products";
 import type { SockColor } from "@/lib/sock-colors";
+import type { SiteRegion } from "@/lib/site-region";
 
 export type OdorReview = {
   quote: string;
@@ -59,9 +60,26 @@ export type OdorColorway = {
 export function odorGalleryFor(
   colorway: OdorColorway,
   pack: OdorPackId,
+  region: SiteRegion = "us",
 ): string[] {
   const hero = pack === "single" ? colorway.singleImage : colorway.tripleImage;
-  return [hero, ...colorway.galleryRest];
+  const rest =
+    region === "uk"
+      ? ukGalleryRestForColor(colorway.value, colorway.galleryRest)
+      : colorway.galleryRest;
+  return [hero, ...rest];
+}
+
+/** UK gallery shots use British “odour” spelling in the artwork. */
+function ukGalleryRestForColor(
+  color: SockColor,
+  fallback: readonly string[],
+): readonly string[] {
+  const odourShots =
+    color === "white"
+      ? ["/uk-odour-smellysock-white.png", "/uk-odour-silverinyarn-white.png"]
+      : ["/uk-odour-smellysock-black.png", "/uk-odour-silverinyarn-black.png"];
+  return [...odourShots, ...fallback.slice(2)];
 }
 
 export const ODOR_PACKS = [

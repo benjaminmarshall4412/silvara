@@ -29,12 +29,29 @@ function withRegionCookie(response: NextResponse, region: SiteRegion) {
   return response;
 }
 
+function regionalOdorPath(pathname: string, region: SiteRegion): string {
+  if (pathname === "/odor" || pathname.startsWith("/odor/")) {
+    const rest = pathname.slice("/odor".length);
+    return region === "uk" ? `/odour${rest}` : pathname;
+  }
+  if (pathname === "/odour" || pathname.startsWith("/odour/")) {
+    const rest = pathname.slice("/odour".length);
+    return region === "uk" ? pathname : `/odor${rest}`;
+  }
+  return pathname;
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const segments = pathname.split("/").filter(Boolean);
   const first = segments[0];
   if (isSiteRegion(first)) {
+    if (first === "uk" && segments[1] === "odor") {
+      const url = req.nextUrl.clone();
+      url.pathname = `/uk/odour${segments.length > 2 ? `/${segments.slice(2).join("/")}` : ""}`;
+      return withRegionCookie(NextResponse.redirect(url), "uk");
+    }
     return withRegionCookie(NextResponse.next(), first);
   }
 
@@ -58,12 +75,14 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/gift/") ||
     pathname === "/odor" ||
     pathname.startsWith("/odor/") ||
+    pathname === "/odour" ||
+    pathname.startsWith("/odour/") ||
     pathname === "/contact" ||
     pathname.startsWith("/contact/")
   ) {
     const region = inferRegion(req);
     const url = req.nextUrl.clone();
-    url.pathname = `/${region}${pathname}`;
+    url.pathname = `/${region}${regionalOdorPath(pathname, region)}`;
     return NextResponse.redirect(url);
   }
 

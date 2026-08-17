@@ -11,17 +11,20 @@ import {
   isFilled,
   type OdorPackId,
 } from "@/lib/odor-product-data";
-import { formatMoney, getProduct, SHIPPING_FEE_CENTS } from "@/lib/products";
+import { formatMoney, getProduct, getShippingFeeCents } from "@/lib/products";
+import { getFallbackPriceCents } from "@/lib/region-storefront";
 import {
   SOCK_COLOR_LABEL,
   SOCK_COLORS,
   type SockColor,
 } from "@/lib/sock-colors";
 import {
-  DEFAULT_SOCK_SIZE,
-  SOCK_SIZES,
+  getDefaultSockSizeForRegion,
+  getShoeSizeFieldLabel,
+  getSockSizesForRegion,
   type SockSize,
 } from "@/lib/sock-sizes";
+import { useSiteRegion } from "@/lib/site-region-context";
 import { useStripeCatalogPrices } from "@/lib/stripe-catalog-prices-context";
 import { cn } from "@/lib/utils";
 
@@ -196,18 +199,22 @@ export function OdorSizeSelector({
   value: SockSize;
   onChange: (size: SockSize) => void;
 }) {
+  const region = useSiteRegion();
+  const sizes = getSockSizesForRegion(region);
+  const sizeLabel = getShoeSizeFieldLabel(region);
+
   return (
     <fieldset>
       <legend className="text-sm font-semibold text-[#5c514a]">
         Shoe size
       </legend>
-      <p className="mt-1 text-xs text-[#5c514a]/80">US men’s shoe size</p>
+      <p className="mt-1 text-xs text-[#5c514a]/80">{sizeLabel}</p>
       <div
         className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-7"
         role="radiogroup"
         aria-label="Shoe size"
       >
-        {SOCK_SIZES.map((size) => {
+        {sizes.map((size) => {
           const selected = value === size;
           return (
             <button
@@ -284,6 +291,7 @@ export function OdorBuyStrip({
   placement: OfferPlacement;
   showTitle?: boolean;
 }) {
+  const region = useSiteRegion();
   const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const packMeta =
     ODOR_PACKS.find((p) => p.id === pack) ??
@@ -297,13 +305,13 @@ export function OdorBuyStrip({
     single: formatMoney(
       unitAmountCentsByBundle.single ??
         getProduct("single")?.priceCents ??
-        2000,
+        getFallbackPriceCents("single", region),
       currency,
     ),
     triple: formatMoney(
       unitAmountCentsByBundle.triple ??
         getProduct("triple")?.priceCents ??
-        4800,
+        getFallbackPriceCents("triple", region),
       currency,
     ),
   };
@@ -316,7 +324,7 @@ export function OdorBuyStrip({
   const trustLines = [
     packMeta.freeShipping
       ? "Free shipping"
-      : `${formatMoney(SHIPPING_FEE_CENTS, currency)} shipping`,
+      : `${formatMoney(getShippingFeeCents(region), currency)} shipping`,
     packMeta.id === "triple" &&
     ODOR_PRODUCT.guaranteeEnabled &&
     isFilled(ODOR_PRODUCT.guaranteeSummary)

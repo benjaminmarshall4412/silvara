@@ -7,6 +7,10 @@ import {
   isFilled,
   isOdorPreviewMode,
 } from "@/lib/odor-product-data";
+import { localizeOdorSpelling } from "@/lib/region-storefront";
+import type { SiteRegion } from "@/lib/site-region";
+import { useSiteRegion } from "@/lib/site-region-context";
+import { getShoeSizeFieldLabel } from "@/lib/sock-sizes";
 import { cn } from "@/lib/utils";
 
 type FaqItem = {
@@ -15,63 +19,72 @@ type FaqItem = {
   a: string | null;
 };
 
-const FAQ_SOURCE: FaqItem[] = [
-  {
-    id: "expect",
-    q: "Do these stop sock smell?",
-    a: "Yes. Silvara gets rid of odor in the sock, so your feet don’t stink. Clean feet and clean shoes help too.",
-  },
-  {
-    id: "eliminate",
-    q: "What if they still smell?",
-    a: "Use the First Pair Guarantee. Wear one pair. If you hate them in 30 days, send the other two back unused and get your sock money back.",
-  },
-  {
-    id: "thick",
-    q: "Are they thick?",
-    a: "No. Thin low-calf socks. They fit normal shoes and work boots.",
-  },
-  {
-    id: "sizes",
-    q: "What sizes?",
-    a: "Pick your US men’s shoe size. Same sock ships for every size.",
-  },
-  {
-    id: "material",
-    q: "What are they made of?",
-    a: "20% silver fiber, 60% bamboo cotton, and 20% spandex.",
-  },
-  {
-    id: "silver",
-    q: "How does the silver work?",
-    a: "Silver fiber is in the yarn. It eliminates odor in the sock. No perfume. No spray.",
-  },
-  {
-    id: "wash-out",
-    q: "Does the silver wash out?",
-    a: "No. It stays in the yarn.",
-  },
-  {
-    id: "wash",
-    q: "How do I wash them?",
-    a: ODOR_PRODUCT.washInstructions,
-  },
-  {
-    id: "ship",
-    q: "How fast do they ship?",
-    a: ODOR_PRODUCT.shippingEstimate,
-  },
-  {
-    id: "guarantee",
-    q: "How does the guarantee work?",
-    a: ODOR_PRODUCT.guaranteeEnabled
-      ? "Wear one pair. If you don't like them within 30 days, contact us and send the other two pairs back unused. You get the sock money back. Not shipping. You pay to ship the unused pairs back."
-      : null,
-  },
-];
+function faqSource(region: SiteRegion): FaqItem[] {
+  const shoeLabel = getShoeSizeFieldLabel(region);
+  return [
+    {
+      id: "expect",
+      q: "Do these stop sock smell?",
+      a: localizeOdorSpelling(
+        "Yes. Silvara gets rid of odor in the sock, so your feet don’t stink. Clean feet and clean shoes help too.",
+        region,
+      ),
+    },
+    {
+      id: "eliminate",
+      q: "What if they still smell?",
+      a: "Use the First Pair Guarantee. Wear one pair. If you hate them in 30 days, send the other two back unused and get your sock money back.",
+    },
+    {
+      id: "thick",
+      q: "Are they thick?",
+      a: "No. Thin low-calf socks. They fit normal shoes and work boots.",
+    },
+    {
+      id: "sizes",
+      q: "What sizes?",
+      a: `Pick your ${shoeLabel.toLowerCase()}. Same sock ships for every size.`,
+    },
+    {
+      id: "material",
+      q: "What are they made of?",
+      a: "20% silver fiber, 60% bamboo cotton, and 20% spandex.",
+    },
+    {
+      id: "silver",
+      q: "How does the silver work?",
+      a: localizeOdorSpelling(
+        "Silver fiber is in the yarn. It eliminates odor in the sock. No perfume. No spray.",
+        region,
+      ),
+    },
+    {
+      id: "wash-out",
+      q: "Does the silver wash out?",
+      a: "No. It stays in the yarn.",
+    },
+    {
+      id: "wash",
+      q: "How do I wash them?",
+      a: ODOR_PRODUCT.washInstructions,
+    },
+    {
+      id: "ship",
+      q: "How fast do they ship?",
+      a: ODOR_PRODUCT.shippingEstimate,
+    },
+    {
+      id: "guarantee",
+      q: "How does the guarantee work?",
+      a: ODOR_PRODUCT.guaranteeEnabled
+        ? "Wear one pair. If you don't like them within 30 days, contact us and send the other two pairs back unused. You get the sock money back. Not shipping. You pay to ship the unused pairs back."
+        : null,
+    },
+  ];
+}
 
-function visibleFaqs(preview: boolean): FaqItem[] {
-  return FAQ_SOURCE.flatMap((item) => {
+function visibleFaqs(preview: boolean, region: SiteRegion): FaqItem[] {
+  return faqSource(region).flatMap((item) => {
     if (isFilled(item.a)) return [item];
     if (preview) {
       return [{ ...item, a: `[CONFIRM ANSWER] ${item.q}` }];
@@ -81,8 +94,9 @@ function visibleFaqs(preview: boolean): FaqItem[] {
 }
 
 export function OdorFaq() {
+  const region = useSiteRegion();
   const preview = isOdorPreviewMode();
-  const items = visibleFaqs(preview);
+  const items = visibleFaqs(preview, region);
   const baseId = useId();
   const [openId, setOpenId] = useState<string | null>(null);
 

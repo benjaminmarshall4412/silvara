@@ -15,9 +15,9 @@ import { useCart } from "@/lib/cart-context";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import {
-  SHIPPING_FEE_CENTS,
   formatMoney,
   getProduct,
+  getShippingFeeCents,
   qualifiesForFreeShipping,
 } from "@/lib/products";
 import { FIT_NOTE, RETURNS_PROMISE } from "@/lib/store-promises";
@@ -52,7 +52,7 @@ export default function CheckoutPage() {
     eligiblePromo && pct > 0 ? Math.round(subtotalCents * (pct / 100)) : 0;
   const estimatedTotalAfterPromo = Math.max(0, subtotalCents - discountCents);
   const freeShipping = qualifiesForFreeShipping(lines);
-  const shippingCents = freeShipping ? 0 : SHIPPING_FEE_CENTS;
+  const shippingCents = freeShipping ? 0 : getShippingFeeCents(region);
   const publishableKey = getStripePublishableKeyForRegion(region);
   const stripeCouponEnvName =
     region === "us"
@@ -233,7 +233,7 @@ export default function CheckoutPage() {
           <span className="font-mono-label text-sm font-medium">
             {freeShipping
               ? "Free"
-              : `${formatMoney(SHIPPING_FEE_CENTS, currency)} standard`}
+              : `${formatMoney(getShippingFeeCents(region), currency)} standard`}
           </span>
         </div>
         <div className="flex justify-between bg-muted px-5 py-4">

@@ -25,57 +25,81 @@ const stripe = new Stripe(secretKey)
 /** UK storefront uses GBP; US unchanged (USD). */
 const stripeCurrency = region === "uk" ? "gbp" : "usd"
 
-/** US keys unchanged — matches existing Stripe dashboard prices from earlier syncs. */
-const LOOKUP_KEYS = {
-  us: {
-    single: "silvara_single_usd_onetime_v1",
-    triple: "silvara_triple_usd_onetime_v2",
-    six: "silvara_six_usd_onetime_v1",
-    rotation: "silvara_rotation_usd_subscription_v1",
-  },
-  uk: {
-    single: "silvara_single_uk_gbp_onetime_v1",
-    triple: "silvara_triple_uk_gbp_onetime_v2",
-    six: "silvara_six_uk_gbp_onetime_v1",
-    rotation: "silvara_rotation_uk_gbp_subscription_v1",
-  },
-}[region]
+/** Per-region catalog amounts (minor units) and lookup keys. Bump lookup key version when changing a live price. */
+const CATALOG_BY_REGION = {
+  us: [
+    {
+      bundleId: "single",
+      productName: "SILVARA 1 PAIR",
+      description: "Single pair trial pack",
+      amount: 2000,
+      lookupKey: "silvara_single_usd_onetime_v1",
+      envKey: "STRIPE_PRICE_SINGLE_US",
+    },
+    {
+      bundleId: "triple",
+      productName: "SILVARA 3-PACK",
+      description: "Main workweek rotation bundle",
+      amount: 4800,
+      lookupKey: "silvara_triple_usd_onetime_v2",
+      envKey: "STRIPE_PRICE_TRIPLE_US",
+    },
+    {
+      bundleId: "six",
+      productName: "SILVARA 6-PACK",
+      description: "Best per-pair value bundle",
+      amount: 7200,
+      lookupKey: "silvara_six_usd_onetime_v1",
+      envKey: "STRIPE_PRICE_SIX_US",
+    },
+    {
+      bundleId: "rotation",
+      productName: "SILVARA FRESH ROTATION",
+      description: "Subscription resupply shipment",
+      amount: 3800,
+      lookupKey: "silvara_rotation_usd_subscription_v1",
+      recurring: { interval: "month", interval_count: 2 },
+      envKey: "STRIPE_PRICE_ROTATION_US",
+    },
+  ],
+  uk: [
+    {
+      bundleId: "single",
+      productName: "SILVARA 1 PAIR",
+      description: "Single pair trial pack",
+      amount: 1599,
+      lookupKey: "silvara_single_uk_gbp_onetime_v2",
+      envKey: "STRIPE_PRICE_SINGLE_UK",
+    },
+    {
+      bundleId: "triple",
+      productName: "SILVARA 3-PACK",
+      description: "Main workweek rotation bundle",
+      amount: 3600,
+      lookupKey: "silvara_triple_uk_gbp_onetime_v3",
+      envKey: "STRIPE_PRICE_TRIPLE_UK",
+    },
+    {
+      bundleId: "six",
+      productName: "SILVARA 6-PACK",
+      description: "Best per-pair value bundle",
+      amount: 7200,
+      lookupKey: "silvara_six_uk_gbp_onetime_v1",
+      envKey: "STRIPE_PRICE_SIX_UK",
+    },
+    {
+      bundleId: "rotation",
+      productName: "SILVARA FRESH ROTATION",
+      description: "Subscription resupply shipment",
+      amount: 3800,
+      lookupKey: "silvara_rotation_uk_gbp_subscription_v1",
+      recurring: { interval: "month", interval_count: 2 },
+      envKey: "STRIPE_PRICE_ROTATION_UK",
+    },
+  ],
+}
 
-const catalog = [
-  {
-    bundleId: "single",
-    productName: "SILVARA 1 PAIR",
-    description: "Single pair trial pack",
-    amount: 2000,
-    lookupKey: LOOKUP_KEYS.single,
-    envKey: `STRIPE_PRICE_SINGLE_${region.toUpperCase()}`,
-  },
-  {
-    bundleId: "triple",
-    productName: "SILVARA 3-PACK",
-    description: "Main workweek rotation bundle",
-    amount: 4800,
-    lookupKey: LOOKUP_KEYS.triple,
-    envKey: `STRIPE_PRICE_TRIPLE_${region.toUpperCase()}`,
-  },
-  {
-    bundleId: "six",
-    productName: "SILVARA 6-PACK",
-    description: "Best per-pair value bundle",
-    amount: 7200,
-    lookupKey: LOOKUP_KEYS.six,
-    envKey: `STRIPE_PRICE_SIX_${region.toUpperCase()}`,
-  },
-  {
-    bundleId: "rotation",
-    productName: "SILVARA FRESH ROTATION",
-    description: "Subscription resupply shipment",
-    amount: 3800,
-    lookupKey: LOOKUP_KEYS.rotation,
-    recurring: { interval: "month", interval_count: 2 },
-    envKey: `STRIPE_PRICE_ROTATION_${region.toUpperCase()}`,
-  },
-]
+const catalog = CATALOG_BY_REGION[region]
 
 async function getOrCreateProduct(item) {
   const existing = await stripe.products.list({

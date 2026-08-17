@@ -10,7 +10,8 @@ import {
 } from "react";
 
 import type { BundleId } from "@/lib/products";
-import { PRODUCTS } from "@/lib/products";
+import { defaultFallbackPrices } from "@/lib/region-storefront";
+import type { SiteRegion } from "@/lib/site-region";
 import { useSiteRegion } from "@/lib/site-region-context";
 
 type CatalogPricesPayload = {
@@ -31,11 +32,8 @@ const StripeCatalogPricesContext = createContext<CatalogPricesContextValue | nul
   null,
 );
 
-function defaultAmounts(): Record<BundleId, number> {
-  return Object.fromEntries(PRODUCTS.map((p) => [p.id, p.priceCents])) as Record<
-    BundleId,
-    number
-  >;
+function defaultAmounts(region: SiteRegion): Record<BundleId, number> {
+  return defaultFallbackPrices(region);
 }
 
 export function StripeCatalogPricesProvider({ children }: { children: ReactNode }) {
@@ -77,7 +75,7 @@ export function StripeCatalogPricesProvider({ children }: { children: ReactNode 
   }, [region]);
 
   const value = useMemo((): CatalogPricesContextValue => {
-    const base = defaultAmounts();
+    const base = defaultAmounts(region);
     const merged = { ...base, ...(payload?.prices ?? {}) };
     const currency = (
       payload?.currency ?? (region === "uk" ? "gbp" : "usd")
