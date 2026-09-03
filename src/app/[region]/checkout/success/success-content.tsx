@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/lib/cart-context";
-import { envPublic } from "@/lib/env.public";
+import { getGoogleAdsPurchaseSendToForRegion } from "@/lib/env.public";
 import { gtagReportConversion } from "@/lib/gtag";
 import { trackMetaEvent } from "@/lib/meta/track-client";
 import { useSiteRegion } from "@/lib/site-region-context";
@@ -72,7 +72,7 @@ export function SuccessContent() {
           order_id: sessionIdParam,
         },
       });
-      const sendTo = envPublic.googleAdsPurchaseSendTo.trim();
+      const sendTo = getGoogleAdsPurchaseSendToForRegion(region);
       if (sendTo) {
         gtagReportConversion(sendTo, {
           value,

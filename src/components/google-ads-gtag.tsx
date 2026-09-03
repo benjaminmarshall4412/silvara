@@ -1,10 +1,11 @@
 import Script from "next/script";
 
-import { envPublic } from "@/lib/env.public";
+import { getGoogleAdsIdForRegion } from "@/lib/env.public";
+import type { SiteRegion } from "@/lib/site-region";
 
-/** Global Google Ads tag — loads on all pages when `NEXT_PUBLIC_GOOGLE_ADS_ID` is set. */
-export function GoogleAdsGtag() {
-  const id = envPublic.googleAdsId.trim();
+/** Google Ads tag for the current storefront region. */
+export function GoogleAdsGtag({ region }: { region: SiteRegion }) {
+  const id = getGoogleAdsIdForRegion(region);
   if (!id) return null;
 
   return (
@@ -13,7 +14,7 @@ export function GoogleAdsGtag() {
         src={`https://www.googletagmanager.com/gtag/js?id=${id}`}
         strategy="afterInteractive"
       />
-      <Script id="google-ads-gtag-init" strategy="afterInteractive">
+      <Script id={`google-ads-gtag-init-${region}`} strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
