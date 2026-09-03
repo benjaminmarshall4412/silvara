@@ -19,7 +19,7 @@ export function GoogleAdsGtag({ region }: { region: SiteRegion }) {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${id}');
+          gtag('config', '${id}', { allow_enhanced_conversions: true });
         `}
       </Script>
     </>

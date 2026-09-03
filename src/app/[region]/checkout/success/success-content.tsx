@@ -78,6 +78,7 @@ export function SuccessContent() {
           value,
           currency,
           transactionId: sessionIdParam,
+          email: payload.customerEmail,
         });
       }
     }

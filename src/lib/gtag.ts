@@ -21,8 +21,13 @@ export function gtagReportConversion(
     value?: number;
     currency?: string;
     transactionId?: string;
+    email?: string | null;
   },
 ) {
+  const email = options?.email?.trim().toLowerCase();
+  if (email) {
+    gtag("set", "user_data", { email });
+  }
   gtag("event", "conversion", {
     send_to: sendTo,
     ...(options?.value != null ? { value: options.value } : {}),

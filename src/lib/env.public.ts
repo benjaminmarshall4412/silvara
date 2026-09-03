@@ -24,10 +24,10 @@ export const envPublic = {
     "",
   /**
    * Purchase conversion `send_to` from Google Ads event snippet, e.g. AW-18207293610/AbCdEfGh.
-   * Optional if you only use URL-based conversion on /checkout/success.
    */
   googleAdsPurchaseSendToUs:
-    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO_US ?? "",
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO_US?.trim() ||
+    "AW-18428618209/ntYTCMLkzu0cEOHLudNE",
   googleAdsPurchaseSendToUk:
     process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO_UK ??
     process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO ??
