@@ -10,6 +10,12 @@ export function GoogleAdsGtag({ region }: { region: SiteRegion }) {
 
   return (
     <>
+      {/* Stub must exist before React conversion events, or they are dropped. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}`,
+        }}
+      />
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${id}`}
         strategy="afterInteractive"

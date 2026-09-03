@@ -10,8 +10,13 @@ declare global {
 }
 
 export function gtag(...args: unknown[]) {
-  if (typeof window === "undefined" || !window.gtag) return;
-  window.gtag(...args);
+  if (typeof window === "undefined") return;
+  if (typeof window.gtag === "function") {
+    window.gtag(...args);
+    return;
+  }
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push(args);
 }
 
 /** Fire a Google Ads conversion (optional `send_to` from the event snippet in Ads). */

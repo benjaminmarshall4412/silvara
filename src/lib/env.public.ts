@@ -17,7 +17,8 @@ export const envPublic = {
    * Google Ads account ids. UK falls back to the legacy unscoped var so existing
    * Vercel `NEXT_PUBLIC_GOOGLE_ADS_ID` keeps working.
    */
-  googleAdsIdUs: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID_US ?? "",
+  googleAdsIdUs:
+    process.env.NEXT_PUBLIC_GOOGLE_ADS_ID_US?.trim() || "AW-18428618209",
   googleAdsIdUk:
     process.env.NEXT_PUBLIC_GOOGLE_ADS_ID_UK ??
     process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ??
