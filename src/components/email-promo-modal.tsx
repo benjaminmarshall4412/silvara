@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 
-import { isPurchaseCriticalPath } from "@/lib/conversion-landing-paths";
+import { isCheckoutPath } from "@/lib/conversion-landing-paths";
 import { envPublic } from "@/lib/env.public";
 import { SILVARA_MARKETING_EMAIL_LS } from "@/lib/marketing-email-storage";
 import { usePromoEligibility } from "@/lib/promo-eligibility-context";
@@ -90,7 +90,8 @@ export function EmailPromoModal() {
   useEffect(() => {
     if (!isBrowser || pct <= 0) return;
     if (typeof window === "undefined") return;
-    if (isPurchaseCriticalPath(pathname)) return;
+    // Don't interrupt checkout / payment.
+    if (isCheckoutPath(pathname)) return;
     try {
       if (localStorage.getItem(STORAGE_DISMISSED) === "1") return;
     } catch {
