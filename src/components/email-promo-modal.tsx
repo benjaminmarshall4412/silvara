@@ -4,7 +4,9 @@ import { usePathname } from "next/navigation";
 import posthog from "posthog-js";
 
 import { isPurchaseCriticalPath } from "@/lib/conversion-landing-paths";
+import { envPublic } from "@/lib/env.public";
 import { SILVARA_MARKETING_EMAIL_LS } from "@/lib/marketing-email-storage";
+import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import {
   useCallback,
@@ -15,60 +17,88 @@ import {
   useSyncExternalStore,
 } from "react";
 
-const STORAGE_DISMISSED = "silvara_fieldtest_modal_dismissed";
+const STORAGE_DISMISSED = "silvara_promo_modal_dismissed";
 const SHOW_DELAY_MS = 4500;
 
 function noopSubscribe() {
   return () => {};
 }
 
-/** Email capture modal — no discount. Field-test / early-access list. */
+function getPromoPct(): number {
+  const raw = Number(envPublic.promoPct);
+  if (!Number.isFinite(raw)) return 10;
+  if (raw <= 0) return 0;
+  return Math.min(90, Math.round(raw));
+}
+
+/** US-only email capture modal that unlocks first-order % off at checkout. */
 export function EmailPromoModal() {
   const formId = useId();
   const pathname = usePathname();
   const siteRegion = useSiteRegion();
+  const pct = siteRegion === "us" ? getPromoPct() : 0;
+  const { state: promoState, refetch: refetchPromo } = usePromoEligibility();
 
   const isBrowser = useSyncExternalStore(noopSubscribe, () => true, () => false);
   const [visible, setVisible] = useState(false);
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">(
+    "idle",
+  );
   const [errorMsg, setErrorMsg] = useState("");
-  const shownLogged = useRef(false);
+  const promoShownLogged = useRef(false);
 
   useEffect(() => {
-    if (!visible) return;
-    if (shownLogged.current) return;
-    shownLogged.current = true;
-    posthog.capture("fieldtest_modal_shown");
-  }, [visible]);
+    if (!visible || pct <= 0) return;
+    if (promoShownLogged.current) return;
+    promoShownLogged.current = true;
+    posthog.capture("promo_modal_shown", {
+      promo_pct: pct,
+      region: siteRegion,
+    });
+  }, [visible, pct, siteRegion]);
 
-  const dismiss = useCallback((hadSubmitted?: boolean) => {
-    if (!hadSubmitted) {
-      posthog.capture("fieldtest_modal_dismissed");
-    }
-    setVisible(false);
-    try {
-      localStorage.setItem(STORAGE_DISMISSED, "1");
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const dismiss = useCallback(
+    (hadSubmitted?: boolean) => {
+      if (!hadSubmitted) {
+        posthog.capture("promo_modal_dismissed", {
+          promo_pct: pct,
+          region: siteRegion,
+        });
+      }
+      setVisible(false);
+      try {
+        localStorage.setItem(STORAGE_DISMISSED, "1");
+      } catch {
+        /* ignore */
+      }
+    },
+    [pct, siteRegion],
+  );
 
   useEffect(() => {
-    if (!isBrowser) return;
+    if (!isBrowser || pct <= 0) return;
+    if (promoState?.claimedOnThisDevice) {
+      try {
+        localStorage.setItem(STORAGE_DISMISSED, "1");
+      } catch {
+        /* ignore */
+      }
+    }
+  }, [isBrowser, pct, promoState?.claimedOnThisDevice]);
+
+  useEffect(() => {
+    if (!isBrowser || pct <= 0) return;
     if (typeof window === "undefined") return;
-    // Never interrupt paid-traffic landings or the checkout itself.
     if (isPurchaseCriticalPath(pathname)) return;
     try {
       if (localStorage.getItem(STORAGE_DISMISSED) === "1") return;
-      // Legacy dismiss from the old 15% promo modal
-      if (localStorage.getItem("silvara_promo_modal_dismissed") === "1") return;
     } catch {
       return;
     }
     const t = window.setTimeout(() => setVisible(true), SHOW_DELAY_MS);
     return () => window.clearTimeout(t);
-  }, [isBrowser, pathname]);
+  }, [isBrowser, pct, pathname]);
 
   useEffect(() => {
     if (!visible) return;
@@ -110,17 +140,21 @@ export function EmailPromoModal() {
         } catch {
           /* ignore */
         }
-        posthog.capture("fieldtest_email_submitted");
+        posthog.capture("promo_email_submitted", {
+          promo_pct: pct,
+          region: siteRegion,
+        });
         posthog.identify(email.trim(), { email: email.trim() });
+        void refetchPromo();
       } catch {
         setErrorMsg("Could not reach the server.");
         setStatus("error");
       }
     },
-    [email, pathname, siteRegion],
+    [email, pathname, pct, refetchPromo, siteRegion],
   );
 
-  if (!isBrowser || !visible) return null;
+  if (!isBrowser || pct <= 0 || !visible) return null;
 
   return (
     <div
@@ -130,7 +164,7 @@ export function EmailPromoModal() {
     >
       <button
         type="button"
-        aria-label="Close"
+        aria-label="Close promotion"
         className="bg-foreground/40 absolute inset-0 block w-full cursor-default border-none"
         onClick={() => dismiss()}
       />
@@ -149,18 +183,18 @@ export function EmailPromoModal() {
                 id={`${formId}-title`}
                 className="font-heading text-lg font-extrabold uppercase leading-tight tracking-tight md:text-xl"
               >
-                Join the SILVARA field-test list
+                Claim {pct}% off your first order
               </p>
-              <p className="text-muted-foreground mt-2 max-w-[36ch] text-sm leading-snug md:text-[0.9375rem]">
-                Get real wear-test results, first access to new colors, and early
-                access to future drops.
+              <p className="text-muted-foreground mt-2 max-w-[32ch] text-sm leading-snug md:text-[0.9375rem]">
+                Add your email and your {pct}% off will show at checkout when
+                you&apos;re ready to pay.
               </p>
             </div>
             <button
               type="button"
               onClick={() => dismiss()}
               className="border-border text-muted-foreground hover:bg-muted hover:text-foreground flex h-10 min-w-10 shrink-0 cursor-pointer items-center justify-center border-2 bg-transparent font-mono text-xl leading-none"
-              aria-label="Dismiss"
+              aria-label="Dismiss offer"
             >
               ×
             </button>
@@ -169,8 +203,8 @@ export function EmailPromoModal() {
           {status === "done" ? (
             <div className="space-y-4">
               <p className="text-sm leading-snug md:text-base">
-                You&apos;re on the list. We&apos;ll only send useful updates —
-                wear results, new colors, and drops.
+                You&apos;re in. Your {pct}% off is saved and will apply when you
+                check out.
               </p>
               <button
                 type="button"
@@ -209,7 +243,7 @@ export function EmailPromoModal() {
                 disabled={status === "loading"}
                 className="bg-accent text-accent-foreground border-border hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border-2 px-4 py-3 font-heading text-sm font-extrabold uppercase tracking-wide"
               >
-                {status === "loading" ? "Saving…" : "Join the list"}
+                {status === "loading" ? "Saving…" : `Claim ${pct}% off`}
               </button>
             </form>
           )}

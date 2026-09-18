@@ -8,7 +8,9 @@ import {
 } from "@/lib/promo-cookie";
 import { isSiteRegion } from "@/lib/site-region";
 
-function pctFromPublicEnv(): number {
+function pctFromPublicEnv(region: string): number {
+  // Email promo / discount is US-only for now.
+  if (region !== "us") return 0;
   const raw = process.env.NEXT_PUBLIC_SILVARA_PROMO_PCT ?? "0";
   const n = Number(raw);
   if (!Number.isFinite(n)) return 0;
@@ -28,8 +30,8 @@ export async function GET(request: Request) {
   const store = await cookies();
   const token = store.get(SILVARA_PROMO_COOKIE_NAME)?.value;
   const cookieOk = verifyPromoEligibleToken(token);
-  const couponReady = !!getStripePromoCouponIdForRegion(region);
-  const pct = pctFromPublicEnv();
+  const couponReady = region === "us" && !!getStripePromoCouponIdForRegion(region);
+  const pct = pctFromPublicEnv(region);
 
   return NextResponse.json({
     /** Matches what Checkout will honor: signed cookie plus Stripe coupon id on the server */

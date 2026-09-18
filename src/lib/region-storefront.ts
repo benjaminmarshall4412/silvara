@@ -8,12 +8,17 @@ export function odorLandingPath(region: SiteRegion): "/odor" | "/odour" {
 }
 
 export function getShippingFeeCents(region: SiteRegion): number {
-  return region === "uk" ? 200 : 595;
+  return region === "uk" ? 200 : 499;
 }
 
+const US_FALLBACK_PRICES: Partial<Record<BundleId, number>> = {
+  single: 1299,
+  triple: 2999,
+};
+
 const UK_FALLBACK_PRICES: Partial<Record<BundleId, number>> = {
-  single: 1599,
-  triple: 3600,
+  single: 1000,
+  triple: 2000,
 };
 
 /** Stripe `unit_amount` fallbacks when catalog API is unavailable. */
@@ -21,10 +26,10 @@ export function getFallbackPriceCents(
   bundleId: BundleId,
   region: SiteRegion,
 ): number {
-  if (region === "uk") {
-    const uk = UK_FALLBACK_PRICES[bundleId];
-    if (uk != null) return uk;
-  }
+  const regionPrices =
+    region === "uk" ? UK_FALLBACK_PRICES : US_FALLBACK_PRICES;
+  const regional = regionPrices[bundleId];
+  if (regional != null) return regional;
   return PRODUCTS.find((p) => p.id === bundleId)?.priceCents ?? 0;
 }
 

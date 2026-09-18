@@ -158,10 +158,10 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
   const six = getProduct("six");
   const single = getProduct("single");
   const tripleCents =
-    unitAmountCentsByBundle.triple ?? triple?.priceCents ?? 4800;
+    unitAmountCentsByBundle.triple ?? triple?.priceCents ?? 2999;
   const sixCents = unitAmountCentsByBundle.six ?? six?.priceCents ?? 7200;
   const singleCents =
-    unitAmountCentsByBundle.single ?? single?.priceCents ?? 2000;
+    unitAmountCentsByBundle.single ?? single?.priceCents ?? 1299;
   const priceLabel = formatMoney(tripleCents, currency);
 
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);
@@ -413,7 +413,7 @@ export function GiftLanding({ angle }: { angle: GiftAngle }) {
               <>
                 {" "}
                 · try one pair for {formatMoney(singleCents, currency)}
-                <span className="text-muted-foreground"> (+$5.95 ship)</span>
+                <span className="text-muted-foreground"> (+$4.99 ship)</span>
               </>
             ) : null}
             {six ? (

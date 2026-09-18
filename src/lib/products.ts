@@ -34,18 +34,18 @@ export const PRODUCTS: Product[] = [
     id: "single",
     name: "1 PAIR",
     shortName: "Single",
-    stripeLookupKey: "silvara_single_usd_onetime_v1",
-    priceCents: 2000,
-    unitNote: "$5.95 shipping at checkout.",
+    stripeLookupKey: "silvara_single_usd_onetime_v3",
+    priceCents: 1299,
+    unitNote: "$4.99 shipping at checkout.",
     description: "Same thin silver low-calf as the packs—fit, wash, toe box before you buy more.",
   },
   {
     id: "triple",
     name: "3-PACK",
     shortName: "Triple",
-    stripeLookupKey: "silvara_triple_usd_onetime_v2",
-    priceCents: 4800,
-    unitNote: "Free shipping · $16 a pair.",
+    stripeLookupKey: "silvara_triple_usd_onetime_v3",
+    priceCents: 2999,
+    unitNote: "Free shipping · about $10 a pair.",
     description: "Three pairs—same sock—for a workweek without re-wearing damp.",
     featured: true,
   },
@@ -84,7 +84,7 @@ export const PAIRS_PER_BUNDLE: Record<BundleId, number> = {
 /** Storefront copy and Stripe shipping rates must agree on these. */
 export const FREE_SHIPPING_MIN_PAIRS = 3;
 /** @deprecated Use getShippingFeeCents(region) from region-storefront */
-export const SHIPPING_FEE_CENTS = 595;
+export const SHIPPING_FEE_CENTS = 499;
 
 export { getShippingFeeCents } from "@/lib/region-storefront";
 

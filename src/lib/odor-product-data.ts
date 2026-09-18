@@ -88,7 +88,7 @@ export const ODOR_PACKS = [
     bundleId: "single" as BundleId,
     label: "1 pair",
     quantity: 1,
-    priceCents: 2000,
+    priceCents: 1299,
     freeShipping: false,
   },
   {
@@ -96,7 +96,7 @@ export const ODOR_PACKS = [
     bundleId: "triple" as BundleId,
     label: "3 pairs",
     quantity: 3,
-    priceCents: 4800,
+    priceCents: 2999,
     freeShipping: true,
   },
 ] as const;
