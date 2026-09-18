@@ -8,6 +8,7 @@ export function odorLandingPath(region: SiteRegion): "/odor" | "/odour" {
 }
 
 export function getShippingFeeCents(region: SiteRegion): number {
+  // US singles: $4.99 · UK singles: £2.00 · 3+ pairs free in both regions
   return region === "uk" ? 200 : 499;
 }
 
