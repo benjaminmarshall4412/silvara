@@ -24,7 +24,7 @@ function shippingAllowedCountries(region: SiteRegion): string[] {
   return region === "uk" ? ["GB"] : ["US"]
 }
 
-/** Free shipping at 3+ pairs (3-pack / 6-pack / 3 singles). Else $4.99 / £2. */
+/** Free shipping at 3+ pairs. Paid single-pair shipping: US $4.99 · UK £2. */
 function shippingOptionsForCart(lines: CheckoutLine[], region: SiteRegion) {
   const currency = region === "uk" ? "gbp" : "usd"
   const shippingFee = getShippingFeeCents(region)
