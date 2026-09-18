@@ -11,8 +11,9 @@ import {
   isFilled,
   type OdorPackId,
 } from "@/lib/odor-product-data";
-import { formatMoney, getProduct, getShippingFeeCents } from "@/lib/products";
+import { formatMoney, getProduct, getShippingFeeCents, applyPromoToCents } from "@/lib/products";
 import { getFallbackPriceCents } from "@/lib/region-storefront";
+import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import {
   SOCK_COLOR_LABEL,
   SOCK_COLORS,
@@ -292,6 +293,7 @@ export function OdorBuyStrip({
   showTitle?: boolean;
 }) {
   const region = useSiteRegion();
+  const { state: promo } = usePromoEligibility();
   const { unitAmountCentsByBundle, currency } = useStripeCatalogPrices();
   const packMeta =
     ODOR_PACKS.find((p) => p.id === pack) ??
@@ -301,23 +303,32 @@ export function OdorBuyStrip({
     getProduct(packMeta.bundleId)?.priceCents ??
     packMeta.priceCents;
 
+  const promoPct = region === "us" && promo && promo.pct > 0 ? promo.pct : 0;
+  const showDiscount =
+    promoPct > 0 && !!promo?.claimedOnThisDevice;
+  const displayCents = showDiscount
+    ? applyPromoToCents(catalogCents, promoPct)
+    : catalogCents;
+  const displayPriceLabel = formatMoney(displayCents, currency);
+
+  const formatPackPrice = (bundleId: "single" | "triple") => {
+    const base =
+      unitAmountCentsByBundle[bundleId] ??
+      getProduct(bundleId)?.priceCents ??
+      getFallbackPriceCents(bundleId, region);
+    return formatMoney(
+      showDiscount ? applyPromoToCents(base, promoPct) : base,
+      currency,
+    );
+  };
+
   const priceByPack: Record<OdorPackId, string> = {
-    single: formatMoney(
-      unitAmountCentsByBundle.single ??
-        getProduct("single")?.priceCents ??
-        getFallbackPriceCents("single", region),
-      currency,
-    ),
-    triple: formatMoney(
-      unitAmountCentsByBundle.triple ??
-        getProduct("triple")?.priceCents ??
-        getFallbackPriceCents("triple", region),
-      currency,
-    ),
+    single: formatPackPrice("single"),
+    triple: formatPackPrice("triple"),
   };
 
   const unitLabel = formatMoney(
-    Math.round(catalogCents / packMeta.quantity),
+    Math.round(displayCents / packMeta.quantity),
     currency,
   );
 
@@ -325,6 +336,10 @@ export function OdorBuyStrip({
     packMeta.freeShipping
       ? "Free shipping"
       : `${formatMoney(getShippingFeeCents(region), currency)} shipping`,
+    showDiscount ? `${promoPct}% off with email offer applied` : null,
+    !showDiscount && promoPct > 0
+      ? `Get ${promoPct}% off — claim with email on this page`
+      : null,
     packMeta.id === "triple" &&
     ODOR_PRODUCT.guaranteeEnabled &&
     isFilled(ODOR_PRODUCT.guaranteeSummary)
@@ -340,8 +355,8 @@ export function OdorBuyStrip({
 
   const buyLabel =
     packMeta.id === "single"
-      ? `Buy 1 pair · ${priceLabel}`
-      : `Buy 3 pairs · ${priceLabel}`;
+      ? `Buy 1 pair · ${displayPriceLabel}`
+      : `Buy 3 pairs · ${displayPriceLabel}`;
 
   return (
     <div id={id} className="text-[#21130e]">
@@ -359,12 +374,31 @@ export function OdorBuyStrip({
       <OdorDealCountdown className="mt-3" />
 
       <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <p className="text-3xl font-extrabold tabular-nums tracking-tight">
-          {priceLabel}
-        </p>
+        {showDiscount ? (
+          <>
+            <p className="text-2xl font-extrabold tabular-nums tracking-tight text-[#5c514a] line-through decoration-2">
+              {priceLabel}
+            </p>
+            <p className="text-3xl font-extrabold tabular-nums tracking-tight">
+              {displayPriceLabel}
+            </p>
+            <span className="rounded-none border border-[#21130e] px-2 py-1 text-xs font-bold uppercase tracking-wide">
+              −{promoPct}%
+            </span>
+          </>
+        ) : (
+          <p className="text-3xl font-extrabold tabular-nums tracking-tight">
+            {priceLabel}
+          </p>
+        )}
         {packMeta.freeShipping ? (
           <span className="rounded-none bg-[#e6f0df] px-3 py-1.5 text-xs font-bold text-[#26451d]">
             Free shipping
+          </span>
+        ) : null}
+        {!showDiscount && promoPct > 0 ? (
+          <span className="rounded-none bg-[#fff1e8] px-3 py-1.5 text-xs font-bold text-[#8a3a22]">
+            {promoPct}% off with email
           </span>
         ) : null}
       </div>

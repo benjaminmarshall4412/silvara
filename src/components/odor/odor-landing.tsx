@@ -18,8 +18,9 @@ import {
   odorGalleryFor,
   type OdorPackId,
 } from "@/lib/odor-product-data";
-import { formatMoney, getProduct } from "@/lib/products";
+import { formatMoney, getProduct, applyPromoToCents } from "@/lib/products";
 import { getFallbackPriceCents, localizeOdorSpelling } from "@/lib/region-storefront";
+import { usePromoEligibility } from "@/lib/promo-eligibility-context";
 import { useSiteRegion } from "@/lib/site-region-context";
 import { withSiteRegion } from "@/lib/site-region";
 import {
@@ -78,6 +79,7 @@ export function OdorLanding() {
   const preview = isOdorPreviewMode();
   const { unitAmountCentsByBundle, currency, ready } =
     useStripeCatalogPrices();
+  const { state: promo } = usePromoEligibility();
 
   const [pack, setPack] = useState<OdorPackId>(DEFAULT_ODOR_PACK);
   const [sockColor, setSockColor] = useState<SockColor>(DEFAULT_SOCK_COLOR);
@@ -96,7 +98,14 @@ export function OdorLanding() {
     unitAmountCentsByBundle[packMeta.bundleId] ??
     getProduct(packMeta.bundleId)?.priceCents ??
     getFallbackPriceCents(packMeta.bundleId, region);
+  const promoPct = region === "us" && promo && promo.pct > 0 ? promo.pct : 0;
+  const showDiscount =
+    promoPct > 0 && !!promo?.claimedOnThisDevice;
+  const displayCents = showDiscount
+    ? applyPromoToCents(catalogCents, promoPct)
+    : catalogCents;
   const priceLabel = formatMoney(catalogCents, currency);
+  const stickyPriceLabel = formatMoney(displayCents, currency);
 
   const colorMeta =
     ODOR_PRODUCT.colors.find((c) => c.value === sockColor) ??
@@ -620,7 +629,12 @@ export function OdorLanding() {
         <div className="mx-auto flex max-w-lg items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-base font-extrabold tabular-nums text-[#21130e]">
-              {priceLabel}
+              {stickyPriceLabel}
+              {showDiscount ? (
+                <span className="ml-2 text-xs font-bold text-[#8a3a22]">
+                  −{promoPct}%
+                </span>
+              ) : null}
             </p>
             <p className="truncate text-sm text-[#5c514a]">
               {SOCK_COLOR_LABEL[sockColor]} · size {sockSize}
