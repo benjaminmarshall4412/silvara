@@ -1,11 +1,11 @@
 import Script from "next/script";
 
-import { envPublic } from "@/lib/env.public";
+/** New Meta / Facebook Ads account pixel — hardcoded so production does not depend on env. */
+const META_PIXEL_ID = "1402048504697789";
 
-/** Meta Pixel base code — loads when `NEXT_PUBLIC_META_PIXEL_ID` is set. */
+/** Meta Pixel base code — fires PageView on every page. */
 export function MetaPixel() {
-  const id = envPublic.metaPixelId.trim();
-  if (!id) return null;
+  const id = META_PIXEL_ID;
 
   return (
     <>

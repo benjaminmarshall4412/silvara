@@ -33,8 +33,6 @@ export const envPublic = {
     process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO_UK ??
     process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_SEND_TO ??
     "",
-  /** Meta Pixel ID. Leave empty to disable. */
-  metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "",
 };
 
 export function getStripePublishableKeyForRegion(region: SiteRegion): string {
