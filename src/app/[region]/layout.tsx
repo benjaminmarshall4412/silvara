@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { CartDrawer } from "@/components/cart-drawer";
 import { GoogleAdsGtag } from "@/components/google-ads-gtag";
+import { MetaPixel } from "@/components/meta-pixel";
 import { EmailPromoModal } from "@/components/email-promo-modal";
 import { PosthogPageEngagement } from "@/components/posthog-page-engagement";
 import { ResendCartAbandonTracker } from "@/components/resend-cart-abandon-tracker";
@@ -28,6 +29,7 @@ export default async function RegionLayout({ children, params }: Props) {
         <StripeCatalogPricesProvider>
           <CartProvider>
             <GoogleAdsGtag region={region} />
+            <MetaPixel region={region} />
             <PosthogPageEngagement />
             <SiteHeader />
             <main className="flex-1">{children}</main>

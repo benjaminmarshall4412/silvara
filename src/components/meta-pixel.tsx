@@ -1,15 +1,20 @@
 import Script from "next/script";
 
-/** New Meta / Facebook Ads account pixel — hardcoded so production does not depend on env. */
-const META_PIXEL_ID = "1402048504697789";
+import type { SiteRegion } from "@/lib/site-region";
 
-/** Meta Pixel base code — fires PageView on every page. */
-export function MetaPixel() {
-  const id = META_PIXEL_ID;
+/** Hardcoded storefront pixels — one Facebook Ads account per region. */
+const META_PIXEL_IDS = {
+  us: "1402048504697789",
+  uk: "1595476105693549",
+} as const satisfies Record<SiteRegion, string>;
+
+/** Meta Pixel base code — fires PageView on storefront pages. */
+export function MetaPixel({ region }: { region: SiteRegion }) {
+  const id = META_PIXEL_IDS[region];
 
   return (
     <>
-      <Script id="meta-pixel" strategy="afterInteractive">
+      <Script id={`meta-pixel-${region}`} strategy="afterInteractive">
         {`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -19,8 +24,8 @@ export function MetaPixel() {
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${id}');
-          fbq('track', 'PageView');
+          window.fbq('init', '${id}');
+          window.fbq('track', 'PageView');
         `}
       </Script>
       <noscript>
